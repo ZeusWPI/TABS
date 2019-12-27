@@ -1,3 +1,5 @@
+DISK_ID EQU 0x81
+
 org 0x7C00                      
 bits 16                         
 
@@ -75,7 +77,7 @@ ret
 
 ; reset disk system
 mov ah, 0x00
-mov dl, 0x81
+mov dl, DISK_ID
 int 0x13
 
 ; print result on error
@@ -84,16 +86,23 @@ mov bl, ah
 call .puthex
 .reset_disk_no_error:
 
-; Read sector 1 into memory
+push byte 0
+.read_disk_loop
+pop cx
+inc cl
+push cx
+
+; Read sector dl into memory
 mov ah, 0x02
 mov al, 0x01    ; number of sectors
 mov ch, 0x00    ; cylinder number, low 8 bits
-mov cl, 0x01    ; cylinder number, high 2 bits + sector number (6 bits)
+; mov cl, 0x01    ; cylinder number, high 2 bits + sector number (6 bits)
 mov dh, 0x00    ; head number
-mov dl, 0x81    ; drive number
+mov dl, DISK_ID    ; drive number
 mov bx, .data   ; data buffer
 int 0x13
 
+jc .read_disk_error
 ; print result on error
 jnc .read_disk_no_error
 mov bl, ah
@@ -103,11 +112,16 @@ call .puthex
 ; print string
 mov bx, .data
 call .puts
+jmp .read_disk_loop
+.read_disk_error:
 
 .end:
 hlt
 
 .data:
 
+; print padding nullbytes
 times 510 - ($ - $$) db 0
+
+; write magic string
 dw 0xAA55
