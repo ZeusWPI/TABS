@@ -4,9 +4,69 @@ org 0x7C00
 bits 16
 
 jmp .start
+ 
+[bits 16]
+ 
+; Function: check_a20
+;
+; Purpose: to check the status of the a20 line in a completely self-contained state-preserving way.
+;          The function can be modified as necessary by removing push's at the beginning and their
+;          respective pop's at the end if complete self-containment is not required.
+;
+; Returns: 0 in ax if the a20 line is disabled (memory wraps around)
+;          1 in ax if the a20 line is enabled (memory does not wrap around)
+ 
+check_a20:
+    pushf
+    push ds
+    push es
+    push di
+    push si
+ 
+    cli
+ 
+    xor ax, ax ; ax = 0
+    mov es, ax
+ 
+    not ax ; ax = 0xFFFF
+    mov ds, ax
+ 
+    mov di, 0x0500
+    mov si, 0x0510
+ 
+    mov al, byte [es:di]
+    push ax
+ 
+    mov al, byte [ds:si]
+    push ax
+ 
+    mov byte [es:di], 0x00
+    mov byte [ds:si], 0xFF
+ 
+    cmp byte [es:di], 0xFF
+ 
+    pop ax
+    mov byte [ds:si], al
+ 
+    pop ax
+    mov byte [es:di], al
+ 
+    mov ax, 0
+    je check_a20__exit
+ 
+    mov ax, 1
+ 
+check_a20__exit:
+    pop si
+    pop di
+    pop es
+    pop ds
+    popf
+ 
+    ret
 
 ;;; Print string at bx
-.puts:
+puts:
 mov al, '!'
 mov ah, 0x0e
 int 0x10
@@ -26,7 +86,7 @@ ret
 
 
 ;;; Print bl as hex
-.puthex:
+puthex:
 
 ; Print high bits
 mov dl, bl
@@ -86,7 +146,7 @@ int 0x13
 ; print result on error
 jnc .reset_disk_no_error
 mov bl, ah
-call .puthex
+call puthex
 .reset_disk_no_error:
 
 mov cx, 1       ; start at sector 1
@@ -108,7 +168,7 @@ jc .read_disk_error
 ; print result on error
 jnc .read_disk_no_error
 mov bl, ah
-call .puthex
+call puthex
 .read_disk_no_error:
 
 pop cx
@@ -121,12 +181,25 @@ push cx
 jmp .read_disk_loop
 .read_disk_error:
 
+call check_a20
+cmp ax, 1
+je .a20_enabled
+mov bx, .str_no_A20
+call puts
+jmp .end
+
+.a20_enabled:
+
+
+
 .end:
 hlt
+jmp .end
 
-; print string
-mov bx, 0x8000
-call .puts
+.data:
+.str_no_A20:
+db "A20 not enabled..."
+
 
 ; print padding nullbytes
 times 510 - ($ - $$) db 0
