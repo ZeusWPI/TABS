@@ -1,12 +1,15 @@
 DISK_ID EQU 0x81
 
-org 0x7C00                      
-bits 16                         
+org 0x7C00
+bits 16
 
 jmp .start
 
 ;;; Print string at bx
 .puts:
+mov al, '!'
+mov ah, 0x0e
+int 0x10
 .puts_loop:
 
 mov al, [bx]        ; load the character
