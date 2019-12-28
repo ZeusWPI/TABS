@@ -219,7 +219,19 @@ mov ss, ax
 ; set up stack
 mov esp, 0x090000
 
-jmp 0x08:0x8000
+; load offset from ELF file
+; mind the differing endian
+mov edx, 0x8018
+mov ah, [ds:edx+2]
+mov al, [ds:edx+3]
+shl eax, 16
+mov ah, [ds:edx]
+mov al, [ds:edx+1]
+
+; add the beginning 0x8000
+add eax, 0x8000
+
+jmp eax
 
 .end:
 jmp .end
