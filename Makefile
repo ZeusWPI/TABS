@@ -2,7 +2,7 @@ run_kernel: compile_kernel
 	qemu-system-i386 -kernel target/kernel.bin
 
 compile_kernel:
-	i686-elf-as kernel/boot.s -o target/boot.o
+	nasm -felf32 kernel/boot.asm -o target/boot.o
 	i686-elf-gcc -c kernel/kernel.c -o target/kernel.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra
 	i686-elf-gcc -T kernel/linker.ld -o target/kernel.bin -ffreestanding -O2 -nostdlib target/boot.o target/kernel.o -lgcc
 
