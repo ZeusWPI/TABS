@@ -190,16 +190,70 @@ jmp .end
 
 .a20_enabled:
 
+; disable interrupts
+cli
 
+; reset ds
+xor ax, ax
+mov ds, ax
+
+; load the GDT
+lgdt [.gdt_desc]
+
+; switch to protected mode
+mov eax, cr0
+or eax, 1
+mov cr0, eax
+
+; jump to 32 bit code
+jmp 0x08:.clear_pipe
+
+[BITS 32]
+.clear_pipe:
+
+; set Data Segment and Stack segment
+mov ax, 10h
+mov ds, ax
+mov ss, ax
+
+; set up stack
+mov esp, 0x090000
+
+jmp 0x08:0x8000
 
 .end:
-hlt
 jmp .end
 
 .data:
 .str_no_A20:
-db "A20 not enabled..."
+db "A20 not enabled"
+db 0
 
+
+.gdt:
+dd 0
+dd 0
+
+dw 0FFFFh
+dw 0
+db 0
+db 10011010b
+db 11001111b
+db 0
+
+dw 0FFFFh
+dw 0
+db 0
+db 10010010b
+db 11001111b
+db 0
+.gdt_end:
+
+
+
+.gdt_desc:
+dw .gdt_end - .gdt - 1
+dd .gdt
 
 ; print padding nullbytes
 times 510 - ($ - $$) db 0
