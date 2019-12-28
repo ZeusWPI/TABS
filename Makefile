@@ -1,8 +1,8 @@
-compile_and_run: compile run
+compile_and_run: compile_bootloader run_bootloader
 
-compile:
-	rm -rf boot.bin
-	nasm -f bin -o boot.bin main.asm
+compile_bootloader:
+	rm -rf target/boot.bin
+	nasm -f bin -o target/boot.bin bootloader/main.asm
 
-run:
-	qemu-system-x86_64 -drive format=raw,file=boot.bin -drive format=raw,file=drive.bin -monitor stdio
+run_bootloader:
+	qemu-system-x86_64 -drive format=raw,file=target/boot.bin -drive format=raw,file=target/kernel.bin -monitor stdio

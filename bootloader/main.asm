@@ -90,7 +90,7 @@ call .puthex
 .reset_disk_no_error:
 
 push byte 0
-.read_disk_loop
+.read_disk_loop:
 pop cx
 inc cl
 push cx
