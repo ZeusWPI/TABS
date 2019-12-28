@@ -6,8 +6,8 @@ ENTRY(_start)
    kernel image. */
 SECTIONS
 {
-	/* Set this to 0, so the program entry is the relative position to the start of the kernel */
-	. = 0;
+	/* Bootloader will put the kernel at 1M */
+	. = 1M;
  
 	/* First put the multiboot header, as it is required to be put very early
 	   early in the image or the bootloader won't recognize the file format.

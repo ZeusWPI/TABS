@@ -3,6 +3,10 @@ DISK_ID EQU 0x81
 org 0x7C00
 bits 16
 
+; memory layout:
+; 0x8000 -> ... = ELF file, unparsed
+; 0x100000 -> ... = actual kernel
+
 jmp .start
  
 [bits 16]
@@ -219,17 +223,10 @@ mov ss, ax
 ; set up stack
 mov esp, 0x090000
 
-; load offset from ELF file
-; mind the differing endian
-mov edx, 0x8018
-mov ah, [ds:edx+2]
-mov al, [ds:edx+3]
-shl eax, 16
-mov ah, [ds:edx]
-mov al, [ds:edx+1]
+; parse ELF file to 0x10000
 
-; add the beginning 0x8000
-add eax, 0x8000
+; load memory position from ELF file
+mov eax, [ds:0x8018]
 
 jmp eax
 
