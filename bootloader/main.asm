@@ -89,11 +89,11 @@ mov bl, ah
 call .puthex
 .reset_disk_no_error:
 
-push byte 0
-.read_disk_loop:
-pop cx
-inc cl
+mov cx, 1       ; start at sector 1
+mov bx, 0x8000  ; write to 0x8000
+push bx
 push cx
+.read_disk_loop:
 
 ; Read sector dl into memory
 mov ah, 0x02
@@ -102,7 +102,6 @@ mov ch, 0x00    ; cylinder number, low 8 bits
 ; mov cl, 0x01    ; cylinder number, high 2 bits + sector number (6 bits)
 mov dh, 0x00    ; head number
 mov dl, DISK_ID    ; drive number
-mov bx, .data   ; data buffer
 int 0x13
 
 jc .read_disk_error
@@ -112,16 +111,22 @@ mov bl, ah
 call .puthex
 .read_disk_no_error:
 
-; print string
-mov bx, .data
-call .puts
+pop cx
+pop bx
+inc cl      ; next sector
+add bx, 512 ; add 512 to data start so we don't overwrite sectors
+push bx
+push cx
+
 jmp .read_disk_loop
 .read_disk_error:
 
 .end:
 hlt
 
-.data:
+; print string
+mov bx, 0x8000
+call .puts
 
 ; print padding nullbytes
 times 510 - ($ - $$) db 0
