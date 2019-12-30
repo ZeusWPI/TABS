@@ -7,8 +7,9 @@ compile_kernel:
 	i686-elf-gcc -T kernel/linker.ld -o target/kernel.bin -ffreestanding -O2 -nostdlib target/boot.o target/kernel.o -lgcc
 
 compile_bootloader: compile_kernel
-	rm -rf target/boot.bin
-	nasm -f bin -o target/boot.bin bootloader/main.asm
+	rm -rf target/bootloader.bin
+	nasm -f bin -o target/bootloader.bin bootloader/main.asm
+	cat target/bootloader.bin target/kernel.bin > target/boot.bin
 
 run_bootloader: compile_bootloader
-	qemu-system-i386 -drive format=raw,file=target/boot.bin -drive format=raw,file=target/kernel.bin -monitor stdio
+	qemu-system-i386 -drive format=raw,file=target/boot.bin -monitor stdio

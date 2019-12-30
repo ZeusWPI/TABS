@@ -1,14 +1,15 @@
-DISK_ID EQU 0x81
+DISK_ID EQU 0x80
 
 KERNEL_START EQU 0x100000
-
 ELF_START EQU 0x8000
+
+NUM_SECTORS EQU 21
 
 org 0x7C00
 bits 16
 
 jmp .start
- 
+
 [bits 16]
  
 ; Function: check_a20
@@ -160,7 +161,7 @@ mov bl, ah
 call puthex
 .reset_disk_no_error:
 
-mov cx, 1       ; start at sector 1
+mov cx, 2       ; start at sector 2 (skip bootloader)
 mov bx, ELF_START  ; write to ELF_START
 push bx
 push cx
@@ -175,12 +176,11 @@ mov dh, 0x00    ; head number
 mov dl, DISK_ID    ; drive number
 int 0x13
 
+; exit on error
 jc .read_disk_error
-; print result on error
-jnc .read_disk_no_error
-mov bl, ah
-call puthex
-.read_disk_no_error:
+
+cmp cx, NUM_SECTORS
+jge .read_disk_end ; we have reached the sector limit, time to boot
 
 pop cx
 pop bx
@@ -190,7 +190,13 @@ push bx
 push cx
 
 jmp .read_disk_loop
+
 .read_disk_error:
+
+mov bl, ah
+call puthex
+
+.read_disk_end:
 
 call check_a20
 cmp ax, 1
@@ -306,7 +312,7 @@ jmp .end
 
 .data:
 .str_no_A20:
-db "A20 not enabled"
+db "A20 fault"
 db 0
 
 

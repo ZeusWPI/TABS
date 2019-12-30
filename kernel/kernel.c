@@ -114,11 +114,16 @@ void kernel_main(void)
 {
 	/* Initialize terminal interface */
 	terminal_initialize();
+
+	terminal_putchar('H');
+	terminal_putchar('e');
+	terminal_putchar('l');
+	terminal_putchar('l');
+	terminal_putchar('o');
  
 	/* Newline support is left as an exercise. */
-	terminal_writestring("Hello, ");
     terminal_setcolor(vga_entry_color(VGA_COLOR_GREEN, VGA_COLOR_BLACK));
-    terminal_writestring("kernel");
+    terminal_writestring(" kernel");
     terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
     terminal_writestring(" World!\n");
 	terminal_writestring("Newlines!");
