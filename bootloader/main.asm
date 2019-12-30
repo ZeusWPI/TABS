@@ -142,6 +142,13 @@ ret
 
 .start:
 
+; disable vga cursor
+mov ah, 0x01
+mov ch, 0b00100000
+mov cl, 0b00000000
+int 0x10
+
+
 ; reset disk system
 mov ah, 0x00
 mov dl, DISK_ID
