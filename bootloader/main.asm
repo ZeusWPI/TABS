@@ -1,11 +1,11 @@
 DISK_ID EQU 0x81
 
+KERNEL_START EQU 0x100000
+
+ELF_START EQU 0x8000
+
 org 0x7C00
 bits 16
-
-; memory layout:
-; 0x8000 -> ... = ELF file, unparsed
-; 0x100000 -> ... = actual kernel
 
 jmp .start
  
@@ -154,7 +154,7 @@ call puthex
 .reset_disk_no_error:
 
 mov cx, 1       ; start at sector 1
-mov bx, 0x8000  ; write to 0x8000
+mov bx, ELF_START  ; write to ELF_START
 push bx
 push cx
 .read_disk_loop:
@@ -223,14 +223,78 @@ mov ss, ax
 ; set up stack
 mov esp, 0x090000
 
-; parse ELF file to 0x10000
+; parse elf file at ELF_START to KERNEL_START
 
-; load memory position from ELF file
-mov eax, [ds:0x8018]
+; verify ELF header
+mov esi, ELF_START
+cmp dword [esi], 464C457Fh ; ELF magic
+jne .invalid_elf
+cmp word [esi+4], 0101h    ; lsb 32 bit, little endian
+jne .invalid_elf
+cmp word [esi+18], 03      ; x86 architecture
+jne .invalid_elf
 
-jmp eax
+; read the entrypoint and store it
+mov eax, dword [esi+0x18] ; program entry position
+mov dword [.entrypoint], eax
+
+mov cx, word [esi+0x2C]     ; read phnum (number of program headers)
+mov eax, dword [esi+0x1C]   ; read phoff (offset of program header)
+
+; ebx is now ELF_START, esi jumps to the start of the program header
+mov ebx, esi
+add esi, eax
+
+; set up for loop
+sub esi, 0x20
+inc cx
+
+.elf_ph_loop:
+add esi, 0x20
+dec cx
+jz .invalid_elf             ; there is no valid code block
+cmp word [esi], 1           ; check if p_type is loadable
+jne .elf_ph_loop
+
+; add offset to ebx     (ebx = pointer to code)
+add ebx, dword [esi+0x04]
+
+; store p_filesz        (ecx = size of the segment)
+mov ecx, dword [esi+0x10]
+
+; calculate size of bss (edx = size of bss)
+mov edx, dword [esi+0x14]
+sub edx, ecx
+
+; check if ecx is zero
+or ecx, ecx
+jz .invalid_elf
+
+; set source
+mov esi, ebx
+
+; set destination
+mov edi, KERNEL_START
+
+; repeat ecx/4 times (because it moves 4 bytes at a time)
+shr ecx, 2
+
+; copy
+repnz movsd
+
+; jump to start of kernel
+jmp [.entrypoint]
 
 .end:
+jmp .end
+
+.invalid_elf:
+mov byte [ds:0x0B8000], 'E'
+mov byte [ds:0x0B8001], 0x40
+mov byte [ds:0x0B8002], 'L'
+mov byte [ds:0x0B8003], 0x40
+mov byte [ds:0x0B8004], 'F'
+mov byte [ds:0x0B8005], 0x40
 jmp .end
 
 .data:
@@ -258,11 +322,11 @@ db 11001111b
 db 0
 .gdt_end:
 
-
-
 .gdt_desc:
 dw .gdt_end - .gdt - 1
 dd .gdt
+
+.entrypoint: dd 0
 
 ; print padding nullbytes
 times 510 - ($ - $$) db 0
