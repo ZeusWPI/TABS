@@ -14,20 +14,10 @@ jmp .start
  
 ; Function: check_a20
 ;
-; Purpose: to check the status of the a20 line in a completely self-contained state-preserving way.
-;          The function can be modified as necessary by removing push's at the beginning and their
-;          respective pop's at the end if complete self-containment is not required.
-;
 ; Returns: 0 in ax if the a20 line is disabled (memory wraps around)
 ;          1 in ax if the a20 line is enabled (memory does not wrap around)
  
 check_a20:
-    pushf
-    push ds
-    push es
-    push di
-    push si
- 
     cli
  
     xor ax, ax ; ax = 0
@@ -40,34 +30,26 @@ check_a20:
     mov si, 0x0510
  
     mov al, byte [es:di]
-    push ax
+    mov bx, ax
  
     mov al, byte [ds:si]
-    push ax
  
     mov byte [es:di], 0x00
     mov byte [ds:si], 0xFF
  
     cmp byte [es:di], 0xFF
  
-    pop ax
     mov byte [ds:si], al
  
-    pop ax
+    mov ax, bx
     mov byte [es:di], al
  
     mov ax, 0
-    je check_a20__exit
+    je .check_a20__exit
  
     mov ax, 1
  
-check_a20__exit:
-    pop si
-    pop di
-    pop es
-    pop ds
-    popf
- 
+.check_a20__exit:
     ret
 
 ;;; Print string at bx
@@ -163,8 +145,6 @@ call puthex
 
 mov cx, 2       ; start at sector 2 (skip bootloader)
 mov bx, ELF_START  ; write to ELF_START
-push bx
-push cx
 .read_disk_loop:
 
 ; Read sector dl into memory
@@ -182,12 +162,8 @@ jc .read_disk_error
 cmp cx, NUM_SECTORS
 jge .read_disk_end ; we have reached the sector limit, time to boot
 
-pop cx
-pop bx
 inc cl      ; next sector
 add bx, 512 ; add 512 to data start so we don't overwrite sectors
-push bx
-push cx
 
 jmp .read_disk_loop
 
