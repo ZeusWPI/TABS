@@ -109,22 +109,53 @@ void terminal_writestring(const char* data)
 {
 	terminal_write(data, strlen(data));
 }
+
+char* itoa(int value, char* result, int base) {
+	// check that the base if valid
+	if (base < 2 || base > 36) { *result = '\0'; return result; }
+
+	char* ptr = result, *ptr1 = result, tmp_char;
+	int tmp_value;
+
+	do {
+		tmp_value = value;
+		value /= base;
+		*ptr++ = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz" [35 + (tmp_value - value * base)];
+	} while ( value );
+
+	// Apply negative sign
+	if (tmp_value < 0) *ptr++ = '-';
+	*ptr-- = '\0';
+	while(ptr1 < ptr) {
+		tmp_char = *ptr;
+		*ptr--= *ptr1;
+		*ptr1++ = tmp_char;
+	}
+	return result;
+}
  
+void terminal_writeint(const int data) {
+	char result[10];
+	terminal_writestring(itoa(data, result, 10));
+}
+
+
 void kernel_main(void) 
 {
+	int input[] = {
+		106404,140515,142745,120767,79665,54235,127391,72207,70799,79485,103994,129583,132791,95135,121194,129425,64861,123233,132805,87916,111395,126625,113045,61704,65413,145820,75988,74717,115137,85331,86833,86063,85464,139738,103372,101942,52741,77660,112745,103109,106301,141714,74546,55474,106747,140234,60426,145867,144810,94179,101606,77763,139291,104246,148513,126828,64624,139058,85839,86636,62198,137358,76711,87848,141711,114079,71639,95896,104522,61929,72199,142790,137736,123437,91872,127661,111179,51548,83452,91196,117798,84484,75517,83820,97407,89181,71428,72758,73076,109957,50601,74571,65556,129765,80626,126995,73480,71360,103288,85670,0
+	};
 	/* Initialize terminal interface */
 	terminal_initialize();
 
-	terminal_putchar('H');
-	terminal_putchar('e');
-	terminal_putchar('l');
-	terminal_putchar('l');
-	terminal_putchar('o');
- 
-	/* Newline support is left as an exercise. */
-    terminal_setcolor(vga_entry_color(VGA_COLOR_GREEN, VGA_COLOR_BLACK));
-    terminal_writestring(" kernel");
-    terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
-    terminal_writestring(" World!\n");
-	terminal_writestring("Newlines!");
+	int sum = 0;
+	int num;
+	int i = 0;
+
+	while ((num = input[i++]) != 0) {
+        sum += (num / 3) - 2;
+	}
+
+	terminal_writestring("result = ");
+	terminal_writeint(sum);
 }
