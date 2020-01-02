@@ -54,9 +54,6 @@ check_a20:
 
 ;;; Print string at bx
 puts:
-mov al, '!'
-mov ah, 0x0e
-int 0x10
 .puts_loop:
 
 mov al, [bx]        ; load the character
@@ -125,6 +122,14 @@ ret
 
 .start:
 
+; set up stack
+mov ax, 0
+mov ss, ax
+mov sp, 0x7C00
+mov ds, ax
+mov es, ax
+
+
 ; disable vga cursor
 mov ah, 0x01
 mov ch, 0b00100000
@@ -177,8 +182,15 @@ call puthex
 call check_a20
 cmp ax, 1
 je .a20_enabled
-mov bx, .str_no_A20
-call puts
+
+mov ah, 0x24     ; set a20 gate
+mov al, 0x01     ; turn it on
+int 0x15
+
+jnc .a20_enabled
+
+mov bl, ah
+call puthex
 jmp .end
 
 .a20_enabled:
@@ -287,10 +299,6 @@ mov byte [ds:0x0B8005], 0x40
 jmp .end
 
 .data:
-.str_no_A20:
-db "A20 fault"
-db 0
-
 
 .gdt:
 dd 0
