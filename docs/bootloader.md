@@ -27,12 +27,22 @@
 | ?      | 0x01fd | data              |
 | 0x01fe | 0x01ff | 0x55AA boot magic |
 
-## Drive layout
+## Hard Drive layout
 
-The first 512 bytes are the bootloader, right after that the 32-bit kernel ELF-file, this kernel can be 32KiB big. In the future, this "kernel" can be replaced by a second stage of the bootloader.
+| start  | end    | use                                        |
+|--------|--------|--------------------------------------------|
+| 0x0000 | 0x01ff | Bootloader code (including SFS superblock) |
+| 0x0200 | 0x81ff | SFS reserved area (kernel ELF file)        |
+| 0x8200 | 0x???? | SFS data area                              |
+| 0x???? | 0x???? | SFS free area                              |
+| 0x???? | end    | SFS index area                             |
 
 ## Known issues
 
 ### Stack setup
 
 As I don't quite get how segments work in real mode, there are most likely errors in the way I set up my stack. I'm going on a _it works on my machine_ approach currently.
+
+### Kernel is not a file
+
+I reserve 32KiB of SFS reserved area for the ELF file of the kernel. This is currently for "historic reasons" (a.k.a. I'm too lazy to load the filesystem in the bootloader). The kernel then handles the filesystem.
