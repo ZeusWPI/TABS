@@ -11,3 +11,5 @@ More info in [the docs](./docs/bootloader.md)
 ## Kernel
 
 The kernel is basically [the bare bones kernel from the OSDev wiki](https://wiki.osdev.org/Bare_Bones). I have implemented newlines, but otherwise it's still exactly the same...
+
+As a more "functional" example, I've implemented day 1 of [advent of code](https://adventofcode.com/) on the [AoC branch](https://github.com/Robbe7730/RoBoot/tree/AoC).
