@@ -1,4 +1,4 @@
-DISK_ID EQU 0x80
+; DISK_ID EQU 0x80
 
 KERNEL_START EQU 0x100000
 ELF_START EQU 0x8000
@@ -73,14 +73,14 @@ ret
 puthex:
 
 ; Print high bits
-mov dl, bl
-shr dl, 4
+mov cl, bl
+shr cl, 4
 
-cmp dl, 9
+cmp cl, 9
 jg .puthex_high_alpha
 
 ; It's < 10, print as digit
-mov al, dl
+mov al, cl
 add al, 0x30
 mov ah, 0x0e
 int 0x10
@@ -88,21 +88,21 @@ jmp .puthex_low
 
 .puthex_high_alpha:
 ; It's >= 10, print as letter
-mov al, dl
+mov al, cl
 add al, 0x57 ; 0x57 = (0x61 - 10)
 mov ah, 0x0e
 int 0x10
 
 .puthex_low:
 ; Print low bits
-mov dl, bl
-and dl, 0b1111
+mov cl, bl
+and cl, 0b1111
 
-cmp dl, 9
+cmp cl, 9
 jg .puthex_low_alpha
 
 ; It's < 10, print as digit
-mov al, dl
+mov al, cl
 add al, 0x30
 mov ah, 0x0e
 int 0x10
@@ -110,7 +110,7 @@ jmp .puthex_end
 
 .puthex_low_alpha:
 ; It's >= 10, print as letter
-mov al, dl
+mov al, cl
 add al, 0x57 ; 0x57 = (0x61 - 10)
 mov ah, 0x0e
 int 0x10
@@ -136,10 +136,12 @@ mov ch, 0b00100000
 mov cl, 0b00000000
 int 0x10
 
+mov bl, dl
+call puthex
 
 ; reset disk system
 mov ah, 0x00
-mov dl, DISK_ID
+; mov dl, DISK_ID
 int 0x13
 
 ; print result on error
@@ -158,7 +160,7 @@ mov al, 0x01    ; number of sectors
 mov ch, 0x00    ; cylinder number, low 8 bits
 ; mov cl, 0x01    ; cylinder number, high 2 bits + sector number (6 bits)
 mov dh, 0x00    ; head number
-mov dl, DISK_ID    ; drive number
+; mov dl, DISK_ID    ; drive number
 int 0x13
 
 ; exit on error
