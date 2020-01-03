@@ -20,10 +20,6 @@ The first 512 bytes are the bootloader, right after that the 32-bit kernel ELF-f
 
 ## Known issues
 
-### USB Boot
-
-It doesn't boot the kernel from USB, as BIOS does not recognize USB as valid hard drive for int 13, only hard drives and floppies. Thus it loads sectors 2-65 from the hard drive. If this is written on a hard drive, it could work if DRIVE_ID is set correctly.
-
 ### Stack setup
 
-As I don't quite get how segments work in real mode, there are most likely errors in the way I set up my stack. I'm going on a _it works on my qemu_ approach currently.
+As I don't quite get how segments work in real mode, there are most likely errors in the way I set up my stack. I'm going on a _it works on my machine_ approach currently.
