@@ -11,7 +11,7 @@ bin: compile_bootloader compile_kernel compile_helpers
 	./target/helpers/make_bin
 
 compile_helpers:
-	gcc -o ./target/helpers/make_bin ./helpers/make_bin.c
+	gcc -g -o ./target/helpers/make_bin ./helpers/make_bin.c
 
 compile_bootloader:
 	rm -rf target/bootloader/bootloader.bin

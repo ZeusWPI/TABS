@@ -33,10 +33,10 @@
 |------------|------------|--------------------------------------------|
 | 0x00000000 | 0x000001ff | Bootloader code (including SFS superblock) |
 | 0x00000200 | 0x000081ff | SFS reserved area (kernel ELF file)        |
-| 0x00008200 | 0x400081ff | SFS data area (1GiB, 1048576 SFS blocks)   |
-| 0x40008200 | 0x5fffffff | SFS free area                              |
-| 0x60000000 | 0x7fffffff | SFS index area                             |
-| 0x80000000 | end        | Unused                                     |
+| 0x00008200 | ???        | SFS data area                              |
+| ???        | ???        | SFS free area                              |
+| ???        | 0x00ffffff | SFS index area                             |
+| 0x01000000 | end        | Unused (Disk size is set to 16MiB)         |
 
 ## Known issues
 
