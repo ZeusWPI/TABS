@@ -30,6 +30,8 @@ int index_entries = 0;
 int block_entries = 0;
 
 void add_directory(const char* directory_name) {
+    printf("Writing directory %s...\n", directory_name);
+
     index_start[0x00] = 0x11; // It's a folder
 
     uint8_t num_continuations;
@@ -65,6 +67,7 @@ void add_directory(const char* directory_name) {
 }
 
 void add_file(const char* filename) {
+    printf("Writing file %s...\n", filename);
     FILE* source = fopen(filename, "rb");
 
     // Add to Index area
@@ -140,6 +143,8 @@ void add_files() {
 int main(int argc, char** argv) {
     buffer = calloc(DISK_SIZE, sizeof(uint8_t));
 
+    puts("Writing bootloader...");
+
     FILE* bootloader_file = fopen("./target/bootloader/bootloader.bin", "rb");
 
     // ------- BOOTLOADER + SFS HEADER -------
@@ -179,6 +184,8 @@ int main(int argc, char** argv) {
 
     // ------- KERNEL -------
     
+    puts("Writing kernel...");
+
     FILE* kernel_file = fopen("./target/kernel/kernel.bin", "rb");
 
     int bytes_written = 0;
@@ -194,6 +201,8 @@ int main(int argc, char** argv) {
 
 
     // ------- FILESYSTEM -------
+
+    puts("Writing filesystem...");
 
     // Volume identifier
     index_start = buffer + DISK_SIZE - 64;
