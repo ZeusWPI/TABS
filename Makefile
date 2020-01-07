@@ -1,15 +1,23 @@
-run_bootloader: compile_bootloader
+run: bin
 	qemu-system-i386 -drive format=raw,file=target/boot.bin -monitor stdio
 
-run_kernel: compile_kernel
-	qemu-system-i386 -kernel target/kernel.bin
+clean:
+	rm -r ./target/
+	mkdir -p ./target/helpers
+	mkdir ./target/bootloader
+	mkdir ./target/kernel
 
-compile_bootloader: compile_kernel
-	rm -rf target/bootloader.bin
-	nasm -f bin -o target/bootloader.bin bootloader/main.asm
-	cat target/bootloader.bin target/kernel.bin > target/boot.bin
+bin: compile_bootloader compile_kernel compile_helpers
+	./target/helpers/make_bin
+
+compile_helpers:
+	gcc -g -o ./target/helpers/make_bin ./helpers/make_bin.c
+
+compile_bootloader:
+	rm -rf target/bootloader/bootloader.bin
+	nasm -f bin -o target/bootloader/bootloader.bin bootloader/main.asm
 
 compile_kernel:
-	nasm -felf32 kernel/boot.asm -o target/boot.o
-	i686-elf-gcc -c kernel/kernel.c -o target/kernel.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra
-	i686-elf-gcc -T kernel/linker.ld -o target/kernel.bin -ffreestanding -O2 -nostdlib target/boot.o target/kernel.o -lgcc
+	nasm -felf32 kernel/wrapper.asm -o target/kernel/wrapper.o
+	i686-elf-gcc -c kernel/kernel.c -o target/kernel/kernel.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra
+	i686-elf-gcc -T kernel/linker.ld -o target/kernel/kernel.bin -ffreestanding -O2 -nostdlib target/kernel/wrapper.o target/kernel/kernel.o -lgcc

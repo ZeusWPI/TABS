@@ -293,12 +293,18 @@ jmp .end
 
 .invalid_elf:
 mov byte [ds:0x0B8000], 'E'
-mov byte [ds:0x0B8001], 0x40
 mov byte [ds:0x0B8002], 'L'
-mov byte [ds:0x0B8003], 0x40
 mov byte [ds:0x0B8004], 'F'
-mov byte [ds:0x0B8005], 0x40
 jmp .end
+
+; padding for bootloader - SFS superblock
+times 404 - ($ - $$) db 0
+
+; room for SFS superblock
+times 42 db 0
+
+; padding for SFS superblock - data
+times 66 - (.file_end - .data) db 0
 
 .data:
 
@@ -327,8 +333,7 @@ dd .gdt
 
 .entrypoint: dd 0
 
-; print padding nullbytes
-times 510 - ($ - $$) db 0
-
-; write magic string
+; magic string
 dw 0xAA55
+
+.file_end:
