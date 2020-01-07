@@ -10,6 +10,15 @@ More info in [the docs](./docs/bootloader.md)
 
 ## Kernel
 
-The kernel is basically [the bare bones kernel from the OSDev wiki](https://wiki.osdev.org/Bare_Bones). I have implemented newlines, but otherwise it's still exactly the same...
+The kernel is based on [the bare bones kernel from the OSDev wiki](https://wiki.osdev.org/Bare_Bones).
 
-As a more "functional" example, I've implemented day 1 of [advent of code](https://adventofcode.com/) on the [AoC branch](https://github.com/Robbe7730/RoBoot/tree/AoC).
+### Features
+
+- [x] Terminal output (with newlines!)
+- [x] _Very_ basic memory management
+- [ ] Interrupt handling
+- [ ] Keyboard input
+- [ ] Filesystem interaction
+- [ ] Better memory management
+
+As a test, I've implemented day 1 of [advent of code](https://adventofcode.com/) on the [AoC branch](https://github.com/Robbe7730/RoBoot/tree/AoC).
