@@ -26,10 +26,11 @@ The kernel is based on [the bare bones kernel from the OSDev wiki](https://wiki.
 ### Features
 
 - [x] Terminal output (with newlines!)
-- [x] _Very_ basic memory management
+- [x] _Very_ basic (and probably broken) memory management
 - [x] Interrupt handling
 - [x] Keyboard input
 - [x] Exception handling
+- [x] Minimal shell
 - [ ] Filesystem interaction
   - [ ] Show files in directory
   - [ ] Read files in directory
@@ -37,5 +38,6 @@ The kernel is based on [the bare bones kernel from the OSDev wiki](https://wiki.
 - [ ] Tests
 - [ ] Running executables from filesystem
 - [ ] Better memory management
+- [ ] Better shell
 
 As a test, I've implemented day 1 of [advent of code](https://adventofcode.com/) on the [AoC branch](https://github.com/Robbe7730/RoBoot/tree/AoC).

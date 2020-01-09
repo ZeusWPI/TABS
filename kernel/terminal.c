@@ -77,6 +77,7 @@ void terminal_putchar(char c) {
 		return;
 	}
 	if (c == 0x08) {
+		terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
 		if (terminal_column == 0) {
 			if(terminal_row != 0) {
 				terminal_row--;

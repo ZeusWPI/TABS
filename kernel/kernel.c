@@ -15,6 +15,7 @@
 #include "terminal.c"
 #include "memory.c"
 #include "interrupts.c"
+#include "shell.c"
 
 static inline bool are_interrupts_enabled() {
     unsigned long flags;
@@ -61,7 +62,6 @@ void kernel_main(void)
 	interrupt_init();
 
 	for(;;) {
-		char curr_char = getchar();
-		terminal_putchar(curr_char);
+		shell_step();
 	}
 }
