@@ -31,6 +31,9 @@ typedef enum keycode_enum {
 
     KEYCODE_SPACE = ' ',
 
+    KEYCODE_BACKSPACE = 0x08,
+    KEYCODE_NEWLINE = '\n',
+
     KEYCODE_SHIFT_UP,
     KEYCODE_SHIFT_DOWN,
     KEYCODE_CAPS_UP,

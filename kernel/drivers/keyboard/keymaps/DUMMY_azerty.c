@@ -72,6 +72,10 @@ keycode get_keycode(unsigned char scancode) {
         return KEYCODE_CAPS_DOWN;
     case 0xba:
         return KEYCODE_CAPS_UP;
+    case 0x0e:
+        return KEYCODE_BACKSPACE;
+    case 0x1c:
+        return KEYCODE_NEWLINE;
     default:
         return KEYCODE_UNKNOWN;
     }
