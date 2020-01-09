@@ -7,6 +7,8 @@
 #include "memory.c"
 #include "terminal.c"
 #include "inline_asm.c"
+#include "exception.c"
+#include "exception_list.c"
 #include "drivers/keyboard/keyboard.c"
 
 typedef struct idt_entry_struct {
@@ -17,28 +19,9 @@ typedef struct idt_entry_struct {
    uint16_t offset_2; // offset bits 16..31
 } idt_entry;
 
-struct interrupt_frame {
-    uint32_t esp;
-    uint32_t ss;
-    uint32_t gs;
-    uint32_t fs;
-    uint32_t es;
-    uint32_t ds;
-    uint32_t ebp;
-    uint32_t edi;
-    uint32_t esi;
-    uint32_t edx;
-    uint32_t ecx;
-    uint32_t ebx;
-    uint32_t eax;
-    uint32_t eip;
-    uint32_t cs;
-    uint32_t eflags;
-};
-
 idt_entry IDT[256];
 
-void interrupt_new_handler(int intnum, void (*handler)(struct interrupt_frame*)) {
+void interrupt_new_handler(int intnum, void (*handler)(interrupt_frame*)) {
     uint32_t handler_address = (uint32_t) handler;
     IDT[intnum].offset_1 = (uint16_t) (handler_address & 0xffff);
     IDT[intnum].selector = 0x08;
@@ -67,6 +50,40 @@ void interrupt_init() {
 	/* mask interrupts */
 	outb(0x21 , 0xff);
 	outb(0xA1 , 0xff);
+
+    // Exceptions
+    interrupt_new_handler(DIVIDE_BY_ZERO,           divide_by_zero_handler);
+    interrupt_new_handler(DEBUG,                    debug_handler);
+    interrupt_new_handler(NON_MASKABLE_INTERRUPT,   non_maskable_interrupt_handler);
+    interrupt_new_handler(BREAKPOINT,               breakpoint_handler);
+    interrupt_new_handler(OVERFLOW,                 overflow_handler);
+    interrupt_new_handler(BOUND_RANGE_EXCEEDED,     bound_range_exceeded_handler);
+    interrupt_new_handler(INVALID_OPCODE,           invalid_opcode_handler);
+    interrupt_new_handler(DEVICE_NOT_AVAILABLE,     device_not_available_handler);
+    interrupt_new_handler(DOUBLE_FAULT,             double_fault_handler);
+    interrupt_new_handler(COPROCESSOR_SEG_OVERRUN,  coprocessor_seg_overrun_handler);
+    interrupt_new_handler(INVALID_TSS,              invalid_tss_handler);
+    interrupt_new_handler(SEGMENT_NOT_PRESENT,      segment_not_present_handler);
+    interrupt_new_handler(STACK_SEGMENT_FAULT,      stack_segment_fault_handler);
+    interrupt_new_handler(GENERAL_PROTECTION_FAULT, general_protection_fault_handler);
+    interrupt_new_handler(PAGE_FAULT,               page_fault_handler);
+    interrupt_new_handler(RESERVED_15,              reserved_handler);
+    interrupt_new_handler(X87_FP_EXCEPTION,         x87_fp_exception_handler);
+    interrupt_new_handler(ALIGNMENT_CHECK,          alignment_check_handler);
+    interrupt_new_handler(MACHINE_CHECK,            machine_check_handler);
+    interrupt_new_handler(SIMD_FP_EXCEPTION,        simd_fp_exception_handler);
+    interrupt_new_handler(VIRTUALIZATION_EXCEPTION, virtualization_exception_handler);
+    interrupt_new_handler(RESERVED_21,              reserved_handler);
+    interrupt_new_handler(RESERVED_22,              reserved_handler);
+    interrupt_new_handler(RESERVED_23,              reserved_handler);
+    interrupt_new_handler(RESERVED_24,              reserved_handler);
+    interrupt_new_handler(RESERVED_25,              reserved_handler);
+    interrupt_new_handler(RESERVED_26,              reserved_handler);
+    interrupt_new_handler(RESERVED_27,              reserved_handler);
+    interrupt_new_handler(RESERVED_28,              reserved_handler);
+    interrupt_new_handler(RESERVED_29,              reserved_handler);
+    interrupt_new_handler(SECURITY_EXCEPTION,       security_exception_handler);
+    interrupt_new_handler(RESERVED_31,              reserved_handler);
 
     interrupt_new_handler(0x21, keyboard_handler);
 

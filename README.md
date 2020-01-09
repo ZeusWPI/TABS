@@ -29,11 +29,11 @@ The kernel is based on [the bare bones kernel from the OSDev wiki](https://wiki.
 - [x] _Very_ basic memory management
 - [x] Interrupt handling
 - [x] Keyboard input
+- [x] Exception handling
 - [ ] Filesystem interaction
   - [ ] Show files in directory
   - [ ] Read files in directory
   - [ ] Write files in directory
-- [ ] Exception handling
 - [ ] Tests
 - [ ] Running executables from filesystem
 - [ ] Better memory management

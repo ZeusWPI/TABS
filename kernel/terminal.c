@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
- 
+
 static const size_t VGA_WIDTH = 80;
 static const size_t VGA_HEIGHT = 25;
 
@@ -94,7 +94,7 @@ void terminal_writestring(const char* data) {
 	terminal_write(data, strlen(data));
 }
 
-char* itoa(int value, char* result, int base) {
+char* itoa(unsigned int value, char* result, int base) {
 	// check that the base if valid
 	if (base < 2 || base > 36) { *result = '\0'; return result; }
 
@@ -107,8 +107,6 @@ char* itoa(int value, char* result, int base) {
 		*ptr++ = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz" [35 + (tmp_value - value * base)];
 	} while ( value );
 
-	// Apply negative sign
-	if (tmp_value < 0) *ptr++ = '-';
 	*ptr-- = '\0';
 	while(ptr1 < ptr) {
 		tmp_char = *ptr;
@@ -116,6 +114,12 @@ char* itoa(int value, char* result, int base) {
 		*ptr1++ = tmp_char;
 	}
 	return result;
+}
+
+void terminal_writeint(int number, int base) {
+	char* result = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+	itoa(number, result, base);
+	terminal_writestring(result);
 }
 
 #endif //TERMINAL_C
