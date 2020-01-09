@@ -7,6 +7,7 @@
 #include "memory.c"
 #include "terminal.c"
 #include "inline_asm.c"
+#include "drivers/keyboard/keyboard.c"
 
 typedef struct idt_entry_struct {
    uint16_t offset_1; // offset bits 0..15
@@ -36,7 +37,6 @@ struct interrupt_frame {
 };
 
 idt_entry IDT[256];
-int count = 1;
 
 void interrupt_new_handler(int intnum, void (*handler)(struct interrupt_frame*)) {
     uint32_t handler_address = (uint32_t) handler;
@@ -45,22 +45,6 @@ void interrupt_new_handler(int intnum, void (*handler)(struct interrupt_frame*))
     IDT[intnum].zero = 0;
     IDT[intnum].type_attr = 0b10001110; // Active, privilege level 00, storage segment = 0; 32 bit interrupt gate
     IDT[intnum].offset_2 = (uint16_t) ((handler_address & 0xffff0000) >> 16);
-}
-
-void kb_init() {
-    uint8_t mask = inb(0x21);
-
-    mask = mask & ~(1 << 1);
-
-	outb(0x21 , mask);
-}
-
-__attribute__((interrupt)) void keyboard_handler(struct interrupt_frame* frame) {
-    outb(0x20, 0x20);
-
-    char* result = "XXXXXX";
-    itoa(frame->eip, result, 16);
-    terminal_writestring(result);
 }
 
 void interrupt_init() {
@@ -88,21 +72,9 @@ void interrupt_init() {
 
     uint16_t size = (sizeof(idt_entry) * 256);
 
-    terminal_writestring("Size = 0x");
-    char* result = "XXXXX";
-    itoa(size, result, 16);
-    terminal_writestring(result);
-
 	lidt(IDT, size);
 
-    kb_init();
-
-    uint8_t mask = inb(0x21);
-
-    terminal_writestring(" mask = 0b");
-    result = "XXXXXXXX";
-    itoa(mask, result, 2);
-    terminal_writestring(result);
+    keyboard_init();
 }
 
 #endif //INTERRUPTS_C

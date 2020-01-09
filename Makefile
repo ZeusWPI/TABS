@@ -25,5 +25,5 @@ compile_bootloader:
 
 compile_kernel:
 	nasm -felf32 kernel/wrapper.asm -o target/kernel/wrapper.o
-	i686-elf-gcc -g -c kernel/kernel.c -o target/kernel/kernel.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -mno-80387 -mgeneral-regs-only -mno-red-zone
-	i686-elf-gcc -g -T kernel/linker.ld -o target/kernel/kernel.bin -ffreestanding -O2 -nostdlib target/kernel/wrapper.o target/kernel/kernel.o -lgcc
+	i686-elf-gcc -g -c kernel/kernel.c -o target/kernel/kernel.o -std=gnu99 -ffreestanding -Og -Wall -Wextra -mno-80387 -mgeneral-regs-only -mno-red-zone
+	i686-elf-gcc -g -T kernel/linker.ld -o target/kernel/kernel.bin -ffreestanding -Og -nostdlib target/kernel/wrapper.o target/kernel/kernel.o -lgcc

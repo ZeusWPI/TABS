@@ -60,5 +60,8 @@ void kernel_main(void)
 
 	interrupt_init();
 
-	while(true) {}
+	for(;;) {
+		char curr_char = getchar();
+		terminal_putchar(curr_char);
+	}
 }

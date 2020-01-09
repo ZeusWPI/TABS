@@ -16,8 +16,8 @@ The kernel is based on [the bare bones kernel from the OSDev wiki](https://wiki.
 
 - [x] Terminal output (with newlines!)
 - [x] _Very_ basic memory management
-- [ ] Interrupt handling
-- [ ] Keyboard input
+- [x] Interrupt handling
+- [x] Keyboard input
 - [ ] Filesystem interaction
 - [ ] Better memory management
 
