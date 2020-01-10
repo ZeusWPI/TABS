@@ -10,8 +10,8 @@
 
 #define KEY_QUEUE_EMPTY FIFO_QUEUE_EMPTY
 
-bool keyboard_shift_state = false;
-bool keyboard_caps_state = false;
+bool keyboard_shift_state;
+bool keyboard_caps_state;
 
 fifo* key_queue = NULL;
 
@@ -72,6 +72,8 @@ char getchar() {
 }
 
 void keyboard_init() {
+    keyboard_shift_state = false;
+    keyboard_caps_state = false;
     key_queue = fifo_new();
 
     uint8_t mask = inb(0x21);

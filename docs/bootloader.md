@@ -63,6 +63,6 @@ As I don't quite get how segments work in real mode, there are most likely error
 
 I reserve 32KiB of SFS reserved area for the ELF file of the kernel. This is currently for "historic reasons" (a.k.a. I'm too lazy to load the filesystem in the bootloader). The kernel then handles the filesystem.
 
-### Second ELF program header does not get loaded
+### BSS does not get cleared
 
-This will most likely fix the issue of missing global strings.
+I do calculate the size of the BSS, so either I intialize every variable in a function or things like global variables that are false by default don't work. It does work in emulators because they initialize all memory to 0, but real computerss don't always do that.
