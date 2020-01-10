@@ -228,36 +228,41 @@ mov esp, 0x090000
 
 ; parse elf file at ELF_START to KERNEL_START
 
-; verify ELF header
+; verify ELF header (scrapped for memory)
 mov esi, ELF_START
-cmp dword [esi], 464C457Fh ; ELF magic
-jne .invalid_elf
-cmp word [esi+4], 0101h    ; lsb 32 bit, little endian
-jne .invalid_elf
-cmp word [esi+18], 03      ; x86 architecture
-jne .invalid_elf
+; cmp dword [esi], 464C457Fh ; ELF magic
+; jne .invalid_elf
+; cmp word [esi+4], 0101h    ; lsb 32 bit, little endian
+; jne .invalid_elf
+; cmp word [esi+18], 03      ; x86 architecture
+; jne .invalid_elf
 
 ; read the entrypoint and store it
 mov eax, dword [esi+0x18] ; program entry position
 mov dword [.entrypoint], eax
 
-mov cx, word [esi+0x2C]     ; read phnum (number of program headers)
-mov eax, dword [esi+0x1C]   ; read phoff (offset of program header)
+mov ax, word [esi+0x2C]     ; read phnum (number of program headers)
 
-; ebx is now ELF_START, esi jumps to the start of the program header
-mov ebx, esi
-add esi, eax
+; move esi to the start of the program header
+add esi, dword [esi+0x1C]
 
 ; set up for loop
 sub esi, 0x20
-inc cx
+inc ax
+mov dword [.edi_backup], esi
 
 .elf_ph_loop:
+mov ebx, ELF_START
+mov esi, dword [.edi_backup]
 add esi, 0x20
-dec cx
-jz .invalid_elf             ; there is no valid code block
+mov dword [.edi_backup], esi
+dec ax
+jz .start_kernel             ; there is no valid code block
 cmp word [esi], 1           ; check if p_type is loadable
 jne .elf_ph_loop
+
+; set destination
+mov edi, dword [esi+0x08]
 
 ; add offset to ebx     (ebx = pointer to code)
 add ebx, dword [esi+0x04]
@@ -276,14 +281,19 @@ jz .invalid_elf
 ; set source
 mov esi, ebx
 
-; set destination
-mov edi, KERNEL_START
-
 ; repeat ecx/4 times (because it moves 4 bytes at a time)
 shr ecx, 2
 
 ; copy
 repnz movsd
+
+or ax, ax
+jnz .elf_ph_loop
+
+.start_kernel
+
+cmp edi, KERNEL_START
+je .invalid_elf
 
 ; jump to start of kernel
 jmp [.entrypoint]
@@ -334,6 +344,7 @@ dw .gdt_end - .gdt - 1
 dd .gdt
 
 .entrypoint: dd 0
+.edi_backup: dd 0
 
 ; magic string
 dw 0xAA55

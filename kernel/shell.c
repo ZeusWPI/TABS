@@ -92,23 +92,25 @@ int ree(char* unused) {
     return 0;
 }
 
-int run_command(char* buffer) {
-    // TODO If I make these 2 global, it breaks...
-    // TODO This is ugly, fix this 
-    const char* shell_commands_strings[] = {
-        "echo",
-        "hello",
-        "cls",
-        "ree",
-        NULL
-    };
+// TODO This is ugly, fix this 
+const char* shell_commands_strings[] = {
+    "echo",
+    "hello",
+    "cls",
+    "ree",
+    "getgdt",
+    NULL
+};
 
-    int (*shell_commands_functions[]) (char*) = {
-        echo,
-        hello,
-        cls,
-        ree
-    };
+int (*shell_commands_functions[]) (char*) = {
+    echo,
+    hello,
+    cls,
+    ree,
+    get_gdt
+};
+
+int run_command(char* buffer) {
 
     if(buffer[0] == 0) {
         return 0;
