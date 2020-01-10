@@ -44,6 +44,7 @@ int get_gdt(char* unused) {
         uint32_t base = entry.base_lower | entry.base_middle << 16 | entry.base_higher << 24;
         uint32_t limit = entry.limit_lower | (entry.flags_limit_higher & 0x0f) << 16;
         uint8_t flags = (entry.flags_limit_higher >> 4);
+        bool is_data = ((entry.access_byte & 0b00001000) >> 3) == 0;
         
         //terminal_writestring("\nEntry ");
         //terminal_writeint(entry_num, 10);
@@ -70,14 +71,39 @@ int get_gdt(char* unused) {
         terminal_writeint(entry.access_byte, 2);
         terminal_writestring(" (ring ");
         terminal_writeint((entry.access_byte & 0b01100000) >> 5, 10);
-        terminal_writestring(", S = ");
-        terminal_writeint((entry.access_byte & 0b00010000) >> 4, 2);
-        terminal_writestring(", EX = ");
-        terminal_writeint((entry.access_byte & 0b00001000) >> 3, 2);
-        terminal_writestring(", DC = ");
-        terminal_writeint((entry.access_byte & 0b00000100) >> 2, 2);
-        terminal_writestring(", RW = ");
-        terminal_writeint((entry.access_byte & 0b00000010) >> 1, 2);
+        if ((entry.access_byte & 0b00010000) == 0) {
+            terminal_writestring(", System");
+        }
+        if (is_data) {
+            terminal_writestring(", Data");
+
+            if((entry.access_byte & 0b00000100) == 0) {
+                terminal_writestring(" (growing up, ");
+            } else {
+                terminal_writestring(" (growing down, ");
+            }
+
+            if((entry.access_byte & 0b00000010) == 0) {
+                terminal_writestring("r--)");
+            } else {
+                terminal_writestring("rw-)");
+            }
+        } else {
+            terminal_writestring(", Code");
+
+            if((entry.access_byte & 0b00000100) == 0) {
+                terminal_writestring(" (non-conforming, ");
+            } else {
+                terminal_writestring(" (conforming, ");
+            }
+
+            if((entry.access_byte & 0b00000010) == 0) {
+                terminal_writestring("--x)");
+            } else {
+                terminal_writestring("r-x)");
+            }
+        }
+
         terminal_writestring(")\n");
     }
     return 0;

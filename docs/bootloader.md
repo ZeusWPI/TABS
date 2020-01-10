@@ -50,8 +50,8 @@
 | Entry | Base        | Limit   | Flags  | Access     | Purpose      |
 |-------|-------------|---------|--------|------------|--------------|
 | 0x0   | 0x00000000  | 0x00000 | 0b0000 | 0b00000000 | Null Segment |
-| 0x8   | 0x00000000  | 0xfffff | 0b1100 | 0b10011010 | Code Segment |
-| 0x10  | 0x00000000  | 0xfffff | 0b1100 | 0b10010010 | Data Segment |
+| 0x8   | 0x00000000  | 0xfffff | 0b1100 | 0b10011110 | Code Segment |
+| 0x10  | 0x00000000  | 0xfffff | 0b1100 | 0b10010110 | Data Segment |
 
 ## Known issues
 

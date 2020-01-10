@@ -327,14 +327,14 @@ dd 0x00000000
 dw 0xffff
 dw 0x0000
 db 0x00
-db 0b10011010
+db 0b10011110
 db 0b11001111
 db 0x00
 
 dw 0xffff
 dw 0x0000
 db 0x00
-db 0b10010010
+db 0b10010110
 db 0b11001111
 db 0x00
 .gdt_end:
