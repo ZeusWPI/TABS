@@ -210,15 +210,18 @@ or eax, 1
 mov cr0, eax
 
 ; jump to 32 bit code
-jmp 0x08:.clear_pipe
+jmp 0x08:.clear_cs
 
 [BITS 32]
-.clear_pipe:
+.clear_cs:
 
-; set Data Segment and Stack segment
-mov ax, 10h
+; set Data Segment, Stack Segment and other segments
+mov ax, 0x10
 mov ds, ax
 mov ss, ax
+mov es, ax
+mov fs, ax
+mov gs, ax
 
 ; set up stack
 mov esp, 0x090000
@@ -286,6 +289,8 @@ repnz movsd
 jmp [.entrypoint]
 
 .end:
+cli
+hlt
 jmp .end
 
 .invalid_elf:
@@ -306,22 +311,22 @@ times 66 - (.file_end - .data) db 0
 .data:
 
 .gdt:
-dd 0
-dd 0
+dd 0x00000000
+dd 0x00000000
 
-dw 0FFFFh
-dw 0
-db 0
-db 10011010b
-db 11001111b
-db 0
+dw 0xffff
+dw 0x0000
+db 0x00
+db 0b10011010
+db 0b11001111
+db 0x00
 
-dw 0FFFFh
-dw 0
-db 0
-db 10010010b
-db 11001111b
-db 0
+dw 0xffff
+dw 0x0000
+db 0x00
+db 0b10010010
+db 0b11001111
+db 0x00
 .gdt_end:
 
 .gdt_desc:

@@ -6,6 +6,7 @@
 #include <stddef.h>
 
 #include "terminal.c"
+#include "inline_asm.c"
 #include "drivers/keyboard/keyboard.c"
 
 char buffer[SHELL_CMD_BUFFER_SIZE];
@@ -24,6 +25,61 @@ int hello(char* unused) {
 
 int cls(char* unused) {
     terminal_initialize();
+    return 0;
+}
+
+int get_gdt(char* unused) {
+    gdt_desc desc = {2,2};
+    sgdt(&desc);
+    terminal_writestring("limit = ");
+    terminal_writeint(desc.limit, 10);
+    terminal_writestring("\nbase = 0x");
+    terminal_writeint(desc.base, 16);
+    terminal_putchar('\n');
+
+    gdt_entry* entries = (gdt_entry*) desc.base;
+    int num_entries = (desc.limit+1) / 8;
+    for (int entry_num = 0; entry_num < num_entries; entry_num++) {
+        gdt_entry entry = entries[entry_num];
+        uint32_t base = entry.base_lower | entry.base_middle << 16 | entry.base_higher << 24;
+        uint32_t limit = entry.limit_lower | (entry.flags_limit_higher & 0x0f) << 16;
+        uint8_t flags = (entry.flags_limit_higher >> 4);
+        
+        //terminal_writestring("\nEntry ");
+        //terminal_writeint(entry_num, 10);
+        terminal_writestring("base = 0x");
+        terminal_writeint(base, 16);
+        terminal_writestring("\nlimit = 0x");
+        terminal_writeint(limit, 16);
+        terminal_writestring("\nflags = 0b");
+        terminal_writeint((entry.flags_limit_higher >> 4), 2);
+
+        if ((flags & 0b1000) == 0) {
+            terminal_writestring(" (byte granularity");
+        } else {
+            terminal_writestring(" (page granularity");
+        }
+
+        if ((flags & 0b0100) == 0) {
+            terminal_writestring(", 16 bit)");
+        } else {
+            terminal_writestring(", 32 bit)");
+        }
+
+        terminal_writestring("\naccess = 0b");
+        terminal_writeint(entry.access_byte, 2);
+        terminal_writestring(" (ring ");
+        terminal_writeint((entry.access_byte & 0b01100000) >> 5, 10);
+        terminal_writestring(", S = ");
+        terminal_writeint((entry.access_byte & 0b00010000) >> 4, 2);
+        terminal_writestring(", EX = ");
+        terminal_writeint((entry.access_byte & 0b00001000) >> 3, 2);
+        terminal_writestring(", DC = ");
+        terminal_writeint((entry.access_byte & 0b00000100) >> 2, 2);
+        terminal_writestring(", RW = ");
+        terminal_writeint((entry.access_byte & 0b00000010) >> 1, 2);
+        terminal_writestring(")\n");
+    }
     return 0;
 }
 
@@ -81,7 +137,6 @@ int run_command(char* buffer) {
 
 void shell_step() {
     char curr_char = getchar();
-
 
     if (curr_char == '\n') {
         terminal_putchar(curr_char);

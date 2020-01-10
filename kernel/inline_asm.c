@@ -3,6 +3,22 @@
 
 #include <stdint.h>
 
+#include "memory.c"
+
+typedef struct {
+    uint16_t limit;
+    uint32_t base;
+}__attribute__((packed)) gdt_desc;
+
+typedef struct {
+    uint16_t limit_lower;
+    uint16_t base_lower;
+    uint8_t base_middle;
+    uint8_t access_byte;
+    uint8_t flags_limit_higher;
+    uint8_t base_higher;
+}__attribute__((packed)) gdt_entry;
+
 static inline void outb(uint16_t port, uint8_t val) {
     asm volatile ( "outb %0, %1" : : "a"(val), "Nd"(port) );
 }
@@ -39,6 +55,10 @@ static inline int cpuid_string(int code, uint32_t where[4]) {
     asm volatile("cpuid":"=a"(*where),"=b"(*(where+1)),
                 "=c"(*(where+2)),"=d"(*(where+3)):"a"(code));
     return (int)where[0];
+}
+
+static inline void sgdt(gdt_desc* ret) {
+    asm volatile ("sgdt %0" : : "m"(*ret) : "memory");
 }
 
 #endif //INLINE ASM_C

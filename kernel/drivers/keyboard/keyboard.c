@@ -65,7 +65,9 @@ int getchar_nonblocking() {
 
 char getchar() {
     int curr = KEY_QUEUE_EMPTY;
-    while ((curr = getchar_nonblocking()) == KEY_QUEUE_EMPTY) {}
+    while ((curr = getchar_nonblocking()) == KEY_QUEUE_EMPTY) {
+        asm("hlt"); // And don't catch fire
+    }
     return (char) curr;
 }
 
