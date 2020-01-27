@@ -1,6 +1,6 @@
-# RoBoot
+# TABS
 
-My attempt at making a bootloader and kernel.
+Totaal Arbitrair BesturingsSysteem, Zeus maakt een besturingssysteem!
 
 ## How to use
 
