@@ -11,6 +11,8 @@ To compile, you need:
 - `nasm` for compiling the bootloader
 - `qemu-system-i386` for emulating (`qemu-system-x86_64` will probably work too, but that is not directly supported)
 
+More information about installing a cross compiler can be found [here](https://wiki.osdev.org/GCC_Cross-Compiler#The_Build).
+
 If you run `make bin`, it will generate `target/boot.bin`, this is a binary file layed out as described in [the docs](docs/bootloader.md). To burn it on a USB drive, simply `dd if=target/boot.bin of=/dev/sdb` and the drive is bootable and contains an SFS filesystem with the files in `filesystem/`.
 
 ## Bootloader
