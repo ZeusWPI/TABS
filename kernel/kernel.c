@@ -2,7 +2,7 @@
 #if defined(__linux__)
 #error "You are not using a cross-compiler, you will most certainly run into trouble"
 #endif
- 
+
 /* This tutorial will only work for the 32-bit ix86 targets. */
 #if !defined(__i386__)
 #error "This kernel needs to be compiled with a ix86-elf compiler"
@@ -16,76 +16,59 @@
 #include "memory.c"
 #include "interrupts.c"
 #include "shell.c"
+#include "util/printer.c"
 
 static inline bool are_interrupts_enabled() {
     unsigned long flags;
     asm volatile ( "pushf\n\t"
                    "pop %0"
-                   : "=g"(flags) );
+    : "=g"(flags));
     return flags & (1 << 9);
 }
 
-void kernel_main(void) 
-{
-	/* Initialize terminal interface */
-	terminal_initialize();
+void kernel_main(void) {
+    /* Initialize terminal interface */
+    terminal_initialize();
 
-	terminal_putchar('H');
-	terminal_putchar('e');
-	terminal_putchar('l');
-	terminal_putchar('l');
-	terminal_putchar('o');
- 
+    terminal_putchar('H');
+    terminal_putchar('e');
+    terminal_putchar('l');
+    terminal_putchar('l');
+    terminal_putchar('o');
+
     terminal_setcolor(vga_entry_color(VGA_COLOR_GREEN, VGA_COLOR_BLACK));
-    terminal_writestring(" kernel");
+    print(" kernel");
     terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
-    terminal_writestring(" World!\n");
-	terminal_writestring("Newlines!\n");
+    print(" World!\n");
+    print("Newlines!\n");
 
-	char* memory_str = alloc(sizeof(char) * 7);
-	for (int i = 0; i < 6; i++) {
-		memory_str[i] = "Memory"[i];
-	}
-	memory_str[6] = 0;
+    char *memory_str = alloc(sizeof(char) * 7);
+    for (int i = 0; i < 6; i++) {
+        memory_str[i] = "Memory"[i];
+    }
+    memory_str[6] = 0;
 
-	char* management_str = alloc(sizeof(char) * 13);
-	for (int i = 0; i < 13; i++) {
-		management_str[i] = " management!\n"[i];
-	}
-	management_str[13] = 0;
+    char *management_str = alloc(sizeof(char) * 13);
+    for (int i = 0; i < 13; i++) {
+        management_str[i] = " management!\n"[i];
+    }
+    management_str[13] = 0;
 
+    print(memory_str);
+    print(management_str);
 
-    terminal_writestring(memory_str);
-    terminal_writestring(management_str);
-
-    terminal_writestring("Mem after freeing!\n");
+    print("Mem after freeing\n");
     free(memory_str);
     print_memory();
-	free(management_str);
+    free(management_str);
     print_memory();
 
-    char* memory_after_free = alloc(sizeof(char) * 12);
-    for (int i = 0; i < 13; i++) {
-        memory_after_free[i] = " Some text\n"[i];
+
+    print((are_interrupts_enabled()) ? "Interrupts!\n" : "No interrupts :(\n");
+
+    interrupt_init();
+
+    for (;;) {
+        shell_step();
     }
-    memory_after_free[13] = 0;
-
-    terminal_writestring(memory_after_free);
-
-    terminal_writestring("Memory after new allocation!\n");
-    alloc(1000);
-    print_memory();
-
-    terminal_writestring("Free again\n");
-    free(memory_after_free);
-    print_memory();
-
-
-    terminal_writestring((are_interrupts_enabled())? "Interrupts!\n": "No interrupts :(\n");
-
-	interrupt_init();
-
-	for(;;) {
-		shell_step();
-	}
 }
