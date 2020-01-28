@@ -54,10 +54,34 @@ void kernel_main(void)
 	}
 	management_str[13] = 0;
 
-	terminal_writestring(memory_str);
-	terminal_writestring(management_str);
 
-	terminal_writestring((are_interrupts_enabled())? "Interrupts!\n": "No interrupts :(\n");
+    terminal_writestring(memory_str);
+    terminal_writestring(management_str);
+
+    terminal_writestring("Mem after freeing!\n");
+    free(memory_str);
+    print_memory();
+	free(management_str);
+    print_memory();
+
+    char* memory_after_free = alloc(sizeof(char) * 12);
+    for (int i = 0; i < 13; i++) {
+        memory_after_free[i] = " Some text\n"[i];
+    }
+    memory_after_free[13] = 0;
+
+    terminal_writestring(memory_after_free);
+
+    terminal_writestring("Memory after new allocation!\n");
+    alloc(1000);
+    print_memory();
+
+    terminal_writestring("Free again\n");
+    free(memory_after_free);
+    print_memory();
+
+
+    terminal_writestring((are_interrupts_enabled())? "Interrupts!\n": "No interrupts :(\n");
 
 	interrupt_init();
 
