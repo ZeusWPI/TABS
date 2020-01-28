@@ -15,6 +15,10 @@ More information about installing a cross compiler can be found [here](https://w
 
 If you run `make bin`, it will generate `target/boot.bin`, this is a binary file layed out as described in [the docs](docs/bootloader.md). To burn it on a USB drive, simply `dd if=target/boot.bin of=/dev/sdb` and the drive is bootable and contains an SFS filesystem with the files in `filesystem/`.
 
+In case there are errors in the bootloader you can use `make compile_kernel` to only compile the kernel.
+
+To run TABS in the qemu simulator run `make run`.
+
 ## Bootloader
 
 The bootloader is self-written, based on articles on [the OSDev wiki](https://wiki.osdev.org/). It's a single stage, ELF-loading bootloader in the most basic way possible.
