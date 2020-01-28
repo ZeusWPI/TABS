@@ -5,159 +5,143 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct ll_node {
-    void *data;
-    int size;
-    bool used;
+typedef struct page_tag {
+    size_t size;
 
-    struct ll_node *previous;
-    struct ll_node *next;
-} ll_node;
+    struct page_tag *prev;
+    struct page_tag *next;
+} page_tag;
 
-ll_node *__new_node() {
-    ll_node *new_node = malloc(sizeof(ll_node));
-    new_node->data = NULL;
-    new_node->size = 0;
-    new_node->used = false;
 
-    new_node->previous = NULL;
-    new_node->next = NULL;
-    return new_node;
-}
+page_tag *start;
 
-ll_node *__search_ll_node(ll_node *heap_head, void *data) {
-    ll_node *curr_node = heap_head;
-    while (!curr_node->used || curr_node->data != data) {
-        curr_node = curr_node->next;
+
+page_tag *__searchPage(void *data) {
+    page_tag *curr_page = start;
+    while (curr_page + (sizeof(page_tag)) != data) {
+        curr_page = curr_page->next;
     }
-    return curr_node;
+    return curr_page;
 }
 
-void *__alloc(ll_node *ll_head, int size) {
-    ll_node *curr_node = ll_head;
-    ll_node *new_node = __new_node();
-    new_node->used = true;
-    new_node->size = size;
+///**
+// * @param alignment
+// * @param size
+// * @return A block aligned with the alignment parameter.
+// */
+//void* aligned_alloc(int alignment, int size){
+//    // TODO
+//    return NULL;
+//}
 
-    while (curr_node->next != NULL) {
-        curr_node = curr_node->next;
+void *__alloc(size_t size) {
+    page_tag *curr_page = start;
 
-        if (!curr_node->used && curr_node->size >= size) {
-            curr_node->size -= size;
+    while (curr_page->next != NULL) {
+        page_tag *new_page = ((void *) curr_page) + sizeof(page_tag) + curr_page->size;
+        if ((void *) new_page + sizeof(page_tag) + size <= curr_page->next) {
 
-            // xxx -> <new_node> -> empty block -> yyy
+            new_page->size = size;
 
-            // link new_node to xxx
-            curr_node->previous->next = new_node;
-            new_node->previous = curr_node->previous;
+            curr_page->next->prev = new_page;
+            new_page->next = curr_page->next;
 
-            // link new_node to empty_block or yyy
-            if (curr_node->size == 0) {
-                new_node->next = curr_node->next;
-                curr_node->next->previous = new_node;
-                free(curr_node);
-            } else {
-                new_node->next = curr_node;
-                curr_node->previous = new_node;
-            }
+            curr_page->next = new_page;
+            new_page->prev = curr_page;
 
-            void *data = new_node->previous->data + new_node->previous->size;
-            new_node->data = data;
-            return new_node->data;
+            return new_page + 1;
         }
+        curr_page = curr_page->next;
     }
-    new_node->previous = curr_node;
-    curr_node->next = new_node;
 
-    void *data = new_node->previous->data + new_node->previous->size;
-    new_node->data = data;
-    return new_node->data;
+    page_tag *new_page = ((void *) curr_page) + sizeof(page_tag) + curr_page->size;
+    new_page->size = size;
+
+    curr_page->next = new_page;
+    new_page->prev = curr_page;
+    return new_page + 1;
 }
 
-void __free(ll_node *ll_head, void *data) {
-    // Search the corresponding block of memory
-    // TODO This can be held in a table for quicker lookup
-    ll_node *empty_node = __search_ll_node(ll_head, data);
-    empty_node->used = false;
+void __free(void *data) {
+    page_tag *data_tag = data - sizeof(page_tag);
+    printf("found tag at %p\n", data_tag);
 
-    // Free the node
-    if (!empty_node->previous->used) {
-        empty_node->size += empty_node->previous->size;
-
-        empty_node->previous->previous->next = empty_node;
-
-        ll_node* previous = empty_node->previous;
-        empty_node->previous = empty_node->previous->previous;
-
-        free(previous);
-    }
-
-    if (!empty_node->next->used) {
-        empty_node->size += empty_node->next->size;
-
-        empty_node->next->next->previous = empty_node;
-
-        ll_node* next = empty_node->next;
-        empty_node->next = empty_node->next->next;
-
-        free(next);
-    }
+    data_tag->prev->next = data_tag->next;
+    data_tag->next->prev = data_tag->prev;
 }
 
-void print(ll_node *ll_head) {
+void print() {
     printf("==== MEM DUMP ====\n");
-    ll_node *curr_node = ll_head;
-    while (curr_node != NULL) {
-        if (!curr_node->used) {
-            printf("empty");
-        } else {
-            printf("%p", curr_node->data);
-        }
-        printf(" (%d)\n", curr_node->size);
+    page_tag *curr_page = start;
+    int i = 0;
+    while (curr_page != NULL) {
+        printf("%d: [%p (%zu)] [%p (%zu)]\n",
+               i,
+               curr_page, sizeof(page_tag),
+               curr_page + 1, curr_page->size);
 
-        curr_node = curr_node->next;
+        void *empty_start = (void *) curr_page + sizeof(page_tag) + curr_page->size;
+        if (empty_start + sizeof(page_tag) < (void *) curr_page->next) {
+            printf("empty_page (%ld, %ld)\n",
+                   sizeof(page_tag),
+                   (void *) curr_page->next -
+                   (empty_start + sizeof(page_tag)));
+
+        } else if (empty_start < (void *) curr_page->next) {
+            printf("not enough room (%ld)\n",
+                   (void *) curr_page->next - empty_start);
+        }
+        curr_page = curr_page->next;
+        i++;
     }
     printf("-------------------\n\n");
 }
 
-void test_allocs(){
-    ll_node *ll_head = __new_node();
-    ll_head->data = malloc(sizeof(size_t) * 1000);
-    ll_head->used = true;
-    ll_head->size = 1;
-    void* ptr0 = __alloc(ll_head, 5);
-    void* ptr1 = __alloc(ll_head, 5);
-    void* ptr4 = __alloc(ll_head, 5);
-    print(ll_head);
+void test_allocs() {
+    void *ptr0 = __alloc(64);
+    void *ptr1 = __alloc(64);
+    void *ptr4 = __alloc(64);
+    print();
 
-    printf("Free nr 3\n");
-    __free(ll_head, ptr1);
-    print(ll_head);
+    printf("Free nr 2 -> %p\n", ptr1);
+    __free(ptr1);
+    print();
 
-    printf("Alloc 3 bytes\n");
-    void* ptr2 = __alloc(ll_head, 3);
-    print(ll_head);
+    printf("Alloc 32 bytes\n");
+    void *ptr2 = __alloc(32);
+    print();
 
-    printf("Alloc 3 bytes\n");
-    __alloc(ll_head, 3);
-    print(ll_head);
+    printf("Alloc 32 bytes\n");
+    __alloc(32);
+    print();
 
-    printf("Alloc 2 bytes\n");
-    void* ptr3 = __alloc(ll_head, 2);
-    print(ll_head);
+    printf("Alloc 8 bytes\n");
+    void *ptr3 = __alloc(8);
+    print();
 
-    __free(ll_head, ptr2);
-    print(ll_head);
-    __free(ll_head, ptr4);
-    print(ll_head);
-    __free(ll_head, ptr3);
-    print(ll_head);
+    __free(ptr2);
+    print();
+    __free(ptr4);
+    print();
+    __free(ptr3);
+    print();
 
-    __free(ll_head, ptr0);
-    print(ll_head);
+    __free(ptr0);
+    print();
+
+    printf("#########\nTry almost fill\n");
+    __alloc(160);
+    print();
+    __alloc(50);
+    print();
+
+
 }
 
 int main() {
+    start = malloc(sizeof(size_t) * 1000);
+    start->next = NULL;
+    start->prev = NULL;
     test_allocs();
 }
 
