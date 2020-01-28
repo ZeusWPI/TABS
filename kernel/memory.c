@@ -68,7 +68,8 @@ void free(void *data) {
 }
 
 void print_memory() {
-    terminal_write("==== MEM DUMP ====\n", 19);
+    print("____________________\n");
+    print(" ===  MEM DUMP  === \n");
     page_tag *curr_page = start;
     int i = 0;
     while (curr_page != NULL) {
@@ -79,7 +80,7 @@ void print_memory() {
 
         void *empty_start = (void *) curr_page + sizeof(page_tag) + curr_page->size;
         if (empty_start + sizeof(page_tag) < (void *) curr_page->next) {
-            print("_: empty_page (%d, %d)\n",
+            print("_: empty page (%d, %d)\n",
                   sizeof(page_tag),
                   (void *) curr_page->next -
                   (empty_start + sizeof(page_tag)));
@@ -90,8 +91,13 @@ void print_memory() {
         curr_page = curr_page->next;
         i += 1;
     }
-    terminal_write("------------------\n\n", 20);
+    print("____________________\n");
 }
+
+int command_mem_dump(char*string){
+    print_memory();
+}
+
 //
 //void test_allocs() {
 //    void *ptr0 = __alloc(64);
