@@ -13,7 +13,7 @@
  * Specifiers are
  *   - %c: character
  *   - %d: digit (integer)
- *   - %p: pointer (void*)
+ *   - %x: hexadecimal value. Can be used to print pointers to
  * @param fmt Formatter string
  * @param ... Variable amount of arguments to be inserted
  */
