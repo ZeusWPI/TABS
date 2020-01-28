@@ -5,8 +5,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-static const size_t VGA_WIDTH = 80;
-static const size_t VGA_HEIGHT = 25;
+#define VGA_WIDTH 80
+#define VGA_HEIGHT 25
+#define MAX_ENTRIES (VGA_HEIGHT*VGA_WIDTH)
+#define TERMINAL_BUFFER_START 0xB8000
+#define BLANK_CHAR ' '
 
 /* Hardware text mode color constants. */
 enum vga_color {
@@ -28,83 +31,127 @@ enum vga_color {
 	VGA_COLOR_WHITE = 15,
 };
 
-size_t terminal_row;
-size_t terminal_column;
-uint8_t terminal_color;
-uint16_t* terminal_buffer;
+typedef struct terminal_entry{
+    enum vga_color bg_color;
+    enum vga_color fg_color;
+    char value;
+} terminal_entry;
 
-uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg) {
-	return fg | bg << 4;
+typedef struct terminal_state{
+    terminal_entry entries[MAX_ENTRIES];
+    int position;
+    enum vga_color bg_color, fg_color;
+} terminal_state;
+
+/* Clear the terminal with only blank spaces */
+void __terminal_clear(terminal_state* state){
+    uint16_t* terminal_buffer = (uint16_t*) TERMINAL_BUFFER_START;
+    uint16_t empty_color = VGA_COLOR_BLACK | VGA_COLOR_GREEN << 4;
+    for(size_t y=0;y<VGA_HEIGHT;++y)
+        for(size_t x=0;x<VGA_WIDTH;++x){
+			size_t index = y * VGA_WIDTH + x;
+            terminal_buffer[index] = (uint16_t) ((unsigned char)BLANK_CHAR) | (uint16_t) empty_color << 8;
+        }
 }
- 
-uint16_t vga_entry(unsigned char uc, uint8_t color) {
-	return (uint16_t) uc | (uint16_t) color << 8;
+
+/* Initialise a state, i.e. put every char on blank and the default color everywhere */
+void terminal_initialize_state(terminal_state* state){
+    state->position=0;
+    state->bg_color = VGA_COLOR_BLACK;
+    state->fg_color = VGA_COLOR_WHITE;
+    for(size_t y=0;y<VGA_HEIGHT;++y)
+        for(size_t x=0;x<VGA_WIDTH;++x){
+			size_t index = y * VGA_WIDTH + x;
+            state->entries[index].value = BLANK_CHAR;
+        }
+    __terminal_clear(state);
 }
- 
-size_t strlen(const char* str) {
+
+/* Copy the state from one to the other */
+void terminal_state_copy(terminal_state* from, terminal_state* to){
+    to->position=from->position;
+    to->bg_color = from->bg_color;
+    to->fg_color = from->fg_color;
+    for(size_t y=0;y<VGA_HEIGHT;++y)
+        for(size_t x=0;x<VGA_WIDTH;++x){
+			size_t index = y * VGA_WIDTH + x;
+            to->entries[index].value = from->entries[index].value;
+        }
+}
+
+/* This function will update the terminal buffer with the given state */
+void terminal_update(terminal_state *state){
+    __terminal_clear(state);
+    uint16_t* terminal_buffer = (uint16_t*) TERMINAL_BUFFER_START;
+    for(size_t y=0;y<VGA_HEIGHT;++y)
+        for(size_t x=0;x<VGA_WIDTH;++x){
+			size_t index = y * VGA_WIDTH + x;
+            terminal_entry entry = state->entries[index];
+            uint8_t color = entry.fg_color | entry.bg_color << 4;
+            terminal_buffer[index] = (uint16_t) ((unsigned char)entry.value) | (uint16_t) color << 8;
+        }
+}
+
+/* Update the background color */
+void __terminal_set_bg_color(terminal_state* state, enum vga_color color){
+    state->bg_color = color;
+}
+
+/* Update the foreground color */
+void __terminal_set_fg_color(terminal_state* state, enum vga_color color){
+    state->fg_color = color;
+}
+
+/* Update the color */
+void terminal_set_color(terminal_state* state, enum vga_color bg_color, enum vga_color fg_color){
+    __terminal_set_bg_color(state, bg_color);
+    __terminal_set_fg_color(state, fg_color);
+}
+
+/* Write a char to the state */
+void __terminal_put_char(terminal_state *state, char c){
+    size_t pos = state->position;
+    terminal_entry entry;
+    /* If there is a new line, keep going until the end of the line (with blank space in black) */
+    if(c == '\n'){
+        entry.bg_color = VGA_COLOR_BLACK;
+        entry.fg_color = VGA_COLOR_BLACK;
+        entry.value = BLANK_CHAR;
+        while(pos % VGA_WIDTH){
+            state->entries[pos] = entry;
+            ++pos;
+        }
+        state->position = (pos % MAX_ENTRIES);
+    }
+    else{
+        entry.bg_color = state->bg_color;
+        entry.fg_color = state->fg_color;
+        entry.value = c;
+        state->entries[pos] = entry;
+        state->position = ((pos+1) % MAX_ENTRIES);
+    }
+}
+
+/* Write a char to the state and run an update */
+void terminal_write_char(terminal_state *state, const char c){
+    __terminal_put_char(state, c);
+    terminal_update(state);
+}
+
+/* Write a string to the state and run an update */
+void terminal_write_str(terminal_state *state, const char* str){
 	size_t len = 0;
-	while (str[len])
-		len++;
-	return len;
+    while (str[len]) {
+        __terminal_put_char(state, str[len]);
+        ++len;
+    }
+    terminal_update(state);
 }
 
-void terminal_initialize(void) {
-	terminal_row = 0;
-	terminal_column = 0;
-	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-	terminal_buffer = (uint16_t*) 0xB8000;
-	for (size_t y = 0; y < VGA_HEIGHT; y++) {
-		for (size_t x = 0; x < VGA_WIDTH; x++) {
-			const size_t index = y * VGA_WIDTH + x;
-			terminal_buffer[index] = vga_entry(' ', terminal_color);
-		}
-	}
-}
- 
-void terminal_setcolor(uint8_t color) {
-	terminal_color = color;
-}
- 
-void terminal_putentryat(char c, uint8_t color, size_t x, size_t y) {
-	const size_t index = y * VGA_WIDTH + x;
-	terminal_buffer[index] = vga_entry(c, color);
-}
- 
-void terminal_putchar(char c) {
-	if (c == '\n') {
-		terminal_column = 0;
-		terminal_row++;
-		return;
-	}
-	if (c == 0x08) {
-		terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
-		if (terminal_column == 0) {
-			if(terminal_row != 0) {
-				terminal_row--;
-				terminal_column = VGA_WIDTH - 1;
-			}
-		} else {
-			terminal_column--;
-		}
-		terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
-		return;
-	}
-
-	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
-	if (++terminal_column == VGA_WIDTH) {
-		terminal_column = 0;
-		if (++terminal_row == VGA_HEIGHT)
-			terminal_row = 0;
-	}
-}
- 
-void terminal_write(const char* data, size_t size) {
-	for (size_t i = 0; i < size; i++)
-		terminal_putchar(data[i]);
-}
- 
-void terminal_writestring(const char* data) {
-	terminal_write(data, strlen(data));
+/* Clear the terminal en reset the state to the initial state */
+void terminal_clear_state(terminal_state* state){
+    __terminal_clear(state);
+    terminal_initialize_state(state);
 }
 
 char* itoa(unsigned int value, char* result, int base) {
@@ -129,10 +176,10 @@ char* itoa(unsigned int value, char* result, int base) {
 	return result;
 }
 
-void terminal_writeint(int number, int base) {
+void terminal_write_int(terminal_state* state,int number, int base) {
 	char* result = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 	itoa(number, result, base);
-	terminal_writestring(result);
+	terminal_write_str(state, result);
 }
 
 #endif //TERMINAL_C
