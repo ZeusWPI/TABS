@@ -57,11 +57,8 @@ void kernel_main(void) {
     print(memory_str);
     print(management_str);
 
-    print("Mem after freeing\n");
     free(memory_str);
-    print_memory();
     free(management_str);
-    print_memory();
 
 
     print((are_interrupts_enabled()) ? "Interrupts!\n" : "No interrupts :(\n");

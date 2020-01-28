@@ -118,7 +118,13 @@ int ree(char *unused) {
 }
 
 int save_text(char *text) {
-
+    char *mem_block = alloc(strlen(text) * sizeof(char));
+    char *c;
+    int i = 0;
+    for (c = text; *c != '\0'; c++) {
+        mem_block[i] = *c;
+        i++;
+    }
 }
 
 // TODO This is ugly, fix this 
@@ -129,6 +135,7 @@ const char *shell_commands_strings[] = {
         "ree",
         "getgdt",
         "memdump",
+        "savetext",
         NULL
 };
 
@@ -139,6 +146,7 @@ int (*shell_commands_functions[])(char *) = {
         ree,
         get_gdt,
         command_mem_dump,
+        save_text
 };
 
 int run_command(char *buffer) {
