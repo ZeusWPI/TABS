@@ -14,6 +14,7 @@
  *   - %c: character
  *   - %d: digit (integer)
  *   - %x: hexadecimal value. Can be used to print pointers to
+ *   - %b: binary value. Digits with base 2
  * @param fmt Formatter string
  * @param ... Variable amount of arguments to be inserted
  */
@@ -46,8 +47,17 @@ void print(const char *fmt, ...) {
                     terminal_writestring(s);
                     break;
                 case 'x':
+                    terminal_writestring("0x");
+
                     i = va_arg(argp, int);
                     s = itoa(i, fmtbuf, 16);
+                    terminal_writestring(s);
+                    break;
+                case 'b':
+                    terminal_writestring("0b");
+
+                    i = va_arg(argp, int);
+                    s = itoa(i, fmtbuf, 2);
                     terminal_writestring(s);
                     break;
                 case '%':
