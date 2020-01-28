@@ -73,30 +73,20 @@ void print_memory() {
     int i = 0;
     while (curr_page != NULL) {
         print("%d: [%x (%d)] [%x (%d)]\n",
-                i,
-                curr_page, sizeof(page_tag),
-                (curr_page + 1), curr_page->size);
-//
-//        void *empty_start = (void *) curr_page + sizeof(page_tag) + curr_page->size;
-//        if (empty_start + sizeof(page_tag) < (void *) curr_page->next) {
-//            terminal_writestring("_: empty_page (");
-//            terminal_writeint(sizeof(page_tag), 10);
-//            terminal_writestring(", ");
-//            terminal_writeint(
-//                    (void *) curr_page->next -
-//                    (empty_start + sizeof(page_tag)), 10);
-//            terminal_writestring(")\n");
-////            printf("empty_page (%ld, %ld)\n",
-////                   sizeof(page_tag),
-////                   (void *) curr_page->next -
-////                   (empty_start + sizeof(page_tag)));
-//        } else if (empty_start < (void *) curr_page->next) {
-//            terminal_writestring("_: not enough room (");
-//            terminal_writeint((void *) curr_page->next - empty_start, 10);
-//            terminal_writestring(")\n");
-////            printf("not enough room (%ld)\n",
-////                   (void *) curr_page->next - empty_start);
-//        }
+              i,
+              curr_page, sizeof(page_tag),
+              (curr_page + 1), curr_page->size);
+
+        void *empty_start = (void *) curr_page + sizeof(page_tag) + curr_page->size;
+        if (empty_start + sizeof(page_tag) < (void *) curr_page->next) {
+            print("_: empty_page (%d, %d)\n",
+                  sizeof(page_tag),
+                  (void *) curr_page->next -
+                  (empty_start + sizeof(page_tag)));
+        } else if (empty_start < (void *) curr_page->next) {
+            print("_: not enough room (%d)\n",
+                  (void *) curr_page->next - empty_start);
+        }
         curr_page = curr_page->next;
         i += 1;
     }
