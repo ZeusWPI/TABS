@@ -11,31 +11,36 @@
 
 char buffer[SHELL_CMD_BUFFER_SIZE];
 int buffer_idx = 0;
+terminal_state state;
+
+void shell_set_terminal_state(terminal_state* s){
+    terminal_state_copy(s,&state);
+}
 
 int echo(char* input) {
-    terminal_writestring(input);
-    terminal_putchar('\n');
+    terminal_write_str(&state,input);
+    terminal_write_char(&state,'\n');
     return 0;
 }
 
 int hello(char* unused) {
-    terminal_writestring("Hello, world!\n");
+    terminal_write_str(&state,"Hello, world!\n");
     return 0;
 }
 
 int cls(char* unused) {
-    terminal_initialize();
+    terminal_clear_state(&state);
     return 0;
 }
 
 int get_gdt(char* unused) {
     gdt_desc desc = {2,2};
     sgdt(&desc);
-    terminal_writestring("limit = ");
-    terminal_writeint(desc.limit, 10);
-    terminal_writestring("\nbase = 0x");
-    terminal_writeint(desc.base, 16);
-    terminal_putchar('\n');
+    terminal_write_str(&state,"limit = ");
+    terminal_write_int(&state,desc.limit, 10);
+    terminal_write_str(&state,"\nbase = 0x");
+    terminal_write_int(&state,desc.base, 16);
+    terminal_write_char(&state,'\n');
 
     gdt_entry* entries = (gdt_entry*) desc.base;
     int num_entries = (desc.limit+1) / 8;
@@ -46,79 +51,78 @@ int get_gdt(char* unused) {
         uint8_t flags = (entry.flags_limit_higher >> 4);
         bool is_data = ((entry.access_byte & 0b00001000) >> 3) == 0;
         
-        //terminal_writestring("\nEntry ");
-        //terminal_writeint(entry_num, 10);
-        terminal_writestring("base = 0x");
-        terminal_writeint(base, 16);
-        terminal_writestring("\nlimit = 0x");
-        terminal_writeint(limit, 16);
-        terminal_writestring("\nflags = 0b");
-        terminal_writeint((entry.flags_limit_higher >> 4), 2);
+        //terminal_write_str(&state,"\nEntry ");
+        //terminal_write_int(&state,entry_num, 10);
+        terminal_write_str(&state,"base = 0x");
+        terminal_write_int(&state,base, 16);
+        terminal_write_str(&state,"\nlimit = 0x");
+        terminal_write_int(&state,limit, 16);
+        terminal_write_str(&state,"\nflags = 0b");
+        terminal_write_int(&state,(entry.flags_limit_higher >> 4), 2);
 
         if ((flags & 0b1000) == 0) {
-            terminal_writestring(" (byte granularity");
+            terminal_write_str(&state," (byte granularity");
         } else {
-            terminal_writestring(" (page granularity");
+            terminal_write_str(&state," (page granularity");
         }
 
         if ((flags & 0b0100) == 0) {
-            terminal_writestring(", 16 bit)");
+            terminal_write_str(&state,", 16 bit)");
         } else {
-            terminal_writestring(", 32 bit)");
+            terminal_write_str(&state,", 32 bit)");
         }
 
-        terminal_writestring("\naccess = 0b");
-        terminal_writeint(entry.access_byte, 2);
-        terminal_writestring(" (ring ");
-        terminal_writeint((entry.access_byte & 0b01100000) >> 5, 10);
+        terminal_write_str(&state,"\naccess = 0b");
+        terminal_write_int(&state,entry.access_byte, 2);
+        terminal_write_str(&state," (ring ");
+        terminal_write_int(&state,(entry.access_byte & 0b01100000) >> 5, 10);
         if ((entry.access_byte & 0b00010000) == 0) {
-            terminal_writestring(", System");
+            terminal_write_str(&state,", System");
         }
         if (is_data) {
-            terminal_writestring(", Data");
+            terminal_write_str(&state,", Data");
 
             if((entry.access_byte & 0b00000100) == 0) {
-                terminal_writestring(" (growing up, ");
+                terminal_write_str(&state," (growing up, ");
             } else {
-                terminal_writestring(" (growing down, ");
+                terminal_write_str(&state," (growing down, ");
             }
 
             if((entry.access_byte & 0b00000010) == 0) {
-                terminal_writestring("r--)");
+                terminal_write_str(&state,"r--)");
             } else {
-                terminal_writestring("rw-)");
+                terminal_write_str(&state,"rw-)");
             }
         } else {
-            terminal_writestring(", Code");
+            terminal_write_str(&state,", Code");
 
             if((entry.access_byte & 0b00000100) == 0) {
-                terminal_writestring(" (non-conforming, ");
+                terminal_write_str(&state," (non-conforming, ");
             } else {
-                terminal_writestring(" (conforming, ");
+                terminal_write_str(&state," (conforming, ");
             }
 
             if((entry.access_byte & 0b00000010) == 0) {
-                terminal_writestring("--x)");
+                terminal_write_str(&state,"--x)");
             } else {
-                terminal_writestring("r-x)");
+                terminal_write_str(&state,"r-x)");
             }
         }
 
-        terminal_writestring(")\n");
+        terminal_write_str(&state,")\n");
     }
     return 0;
 }
 
 int ree(char* unused) {
-    terminal_initialize();
-    terminal_putchar('R');
+    terminal_write_char(&state,'R');
     for (int i = 1; i < VGA_WIDTH * VGA_HEIGHT; i++) {
-        terminal_putchar('e');
+        terminal_write_char(&state,'e');
     }
     return 0;
 }
 
-// TODO This is ugly, fix this 
+// TODO This is ugly, fix this
 const char* shell_commands_strings[] = {
     "echo",
     "hello",
@@ -167,7 +171,7 @@ void shell_step() {
     char curr_char = getchar();
 
     if (curr_char == '\n') {
-        terminal_putchar(curr_char);
+        terminal_write_char(&state,curr_char);
         buffer[buffer_idx] = 0;
         int result = run_command(buffer);
         for (int i = 0; i < SHELL_CMD_BUFFER_SIZE; i++) {
@@ -176,18 +180,18 @@ void shell_step() {
         buffer_idx = 0;
 
         if (result == -1) {
-            terminal_writestring("No such command\n");
+            terminal_write_str(&state,"No such command\n");
         }
     } else if (curr_char == 0x08) {
         if (buffer_idx != 0) {
             buffer_idx--;
             buffer[buffer_idx] = 0;
-            terminal_putchar(curr_char);
+            terminal_write_char(&state,curr_char);
         }
     } else {
         buffer[buffer_idx] = curr_char;
         buffer_idx++;
-        terminal_putchar(curr_char);
+        terminal_write_char(&state,curr_char);
     }
 }
 

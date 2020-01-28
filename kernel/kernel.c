@@ -25,22 +25,27 @@ static inline bool are_interrupts_enabled() {
     return flags & (1 << 9);
 }
 
-void kernel_main(void) 
+void kernel_main(void)
 {
-	/* Initialize terminal interface */
-	terminal_initialize();
+    terminal_state state;
+    terminal_initialize_state(&state);
 
-	terminal_putchar('H');
-	terminal_putchar('e');
-	terminal_putchar('l');
-	terminal_putchar('l');
-	terminal_putchar('o');
- 
-    terminal_setcolor(vga_entry_color(VGA_COLOR_GREEN, VGA_COLOR_BLACK));
-    terminal_writestring(" kernel");
-    terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
-    terminal_writestring(" World!\n");
-	terminal_writestring("Newlines!\n");
+    terminal_set_color(&state, VGA_COLOR_BLACK, VGA_COLOR_RED);
+	terminal_write_char(&state, 'H');
+    terminal_set_color(&state, VGA_COLOR_BLACK, VGA_COLOR_GREEN);
+	terminal_write_char(&state, 'e');
+    terminal_set_color(&state, VGA_COLOR_BLACK, VGA_COLOR_BLUE);
+	terminal_write_char(&state, 'l');
+    terminal_set_color(&state, VGA_COLOR_BLACK, VGA_COLOR_MAGENTA);
+	terminal_write_char(&state, 'l');
+    terminal_set_color(&state, VGA_COLOR_BLACK, VGA_COLOR_WHITE);
+	terminal_write_char(&state, 'o');
+
+    terminal_set_color(&state, VGA_COLOR_GREEN, VGA_COLOR_WHITE);
+    terminal_write_str(&state," kernel");
+    terminal_set_color(&state, VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+    terminal_write_str(&state," World!\n");
+	terminal_write_str(&state,"Newlines!\n");
 
 	char* memory_str = alloc(sizeof(char) * 7);
 	for (int i = 0; i < 6; i++) {
@@ -54,11 +59,13 @@ void kernel_main(void)
 	}
 	management_str[13] = 0;
 
-	terminal_writestring(memory_str);
-	terminal_writestring(management_str);
+	/* terminal_write_str(&state,memory_str); */
+	/* terminal_write_str(&state,management_str); */
 
-	terminal_writestring((are_interrupts_enabled())? "Interrupts!\n": "No interrupts :(\n");
+	terminal_write_str(&state, (are_interrupts_enabled())? "Interrupts!\n": "No interrupts :(\n");
 
+    shell_set_terminal_state(&state);
+    exception_set_terminal_state(&state);
 	interrupt_init();
 
 	for(;;) {

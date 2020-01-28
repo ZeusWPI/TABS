@@ -21,60 +21,65 @@ __attribute__((interrupt)) void NAME (interrupt_frame* frame, uint32_t err_code)
     bsod(frame, STR, err_code); \
 }
 
+terminal_state state;
+
+void exception_set_terminal_state(terminal_state* s){
+    terminal_state_copy(s,&state);
+}
+
 void bsod(interrupt_frame* frame, char* err_msg, int32_t err_code) {
 
-    terminal_initialize();
-    terminal_writestring("An exception occured: ");
-    terminal_writestring(err_msg);
+    terminal_write_str(&state,"An exception occured: ");
+    terminal_write_str(&state,err_msg);
     if(err_code != -1) {
-        terminal_writestring(" (error code = 0x");
-        terminal_writeint(err_code, 16);
-        terminal_writestring(")");
+        terminal_write_str(&state," (error code = 0x");
+        terminal_write_int(&state,err_code, 16);
+        terminal_write_str(&state,")");
     }
-    terminal_writestring("\nHere's what we know:\n");
-    terminal_writestring("eip = 0x");
-    terminal_writeint(frame->eip, 16);
-    terminal_writestring("\ncs = 0x");
-    terminal_writeint(frame->cs, 16);
-    terminal_writestring("\neflags = 0b");
-    terminal_writeint(frame->eflags, 2);
-    terminal_writestring("\n(");
+    terminal_write_str(&state,"\nHere's what we know:\n");
+    terminal_write_str(&state,"eip = 0x");
+    terminal_write_int(&state,frame->eip, 16);
+    terminal_write_str(&state,"\ncs = 0x");
+    terminal_write_int(&state,frame->cs, 16);
+    terminal_write_str(&state,"\neflags = 0b");
+    terminal_write_int(&state,frame->eflags, 2);
+    terminal_write_str(&state,"\n(");
 
-    terminal_writestring((0x0001 & frame->eflags) != 0 ? "NC,": "CY,");
-    terminal_writestring((0x0004 & frame->eflags) != 0 ? "PE,": "PO,");
-    terminal_writestring((0x0010 & frame->eflags) != 0 ? "AC,": "NA,");
-    terminal_writestring((0x0040 & frame->eflags) != 0 ? "ZR,": "NZ,");
-    terminal_writestring((0x0080 & frame->eflags) != 0 ? "NG,": "PL,");
-    terminal_writestring("TF:");
-    terminal_writeint((0x0100 & frame->eflags) >> 8, 2);
-    terminal_putchar(',');
-    terminal_writestring((0x0200 & frame->eflags) != 0 ? "EI,": "DI,");
-    terminal_writestring((0x0400 & frame->eflags) != 0 ? "DN,": "UP,");
-    terminal_writestring((0x0800 & frame->eflags) != 0 ? "OV,": "NV,");
-    terminal_writestring("IOPL:");
-    terminal_writeint((0x3000 & frame->eflags) >> 12, 10);
-    terminal_putchar(',');
-    terminal_writestring("NT:");
-    terminal_writeint((0x4000 & frame->eflags) >> 14, 2);
-    terminal_putchar(',');
-    terminal_writestring("RF:");
-    terminal_writeint((0x0001000 & frame->eflags) >> 16, 2);
-    terminal_putchar(',');
-    terminal_writestring("VM:");
-    terminal_writeint((0x0002000 & frame->eflags) >> 17, 2);
-    terminal_putchar(',');
-    terminal_writestring("AC:");
-    terminal_writeint((0x0004000 & frame->eflags) >> 18, 2);
-    terminal_putchar(',');
-    terminal_writestring("VIF:");
-    terminal_writeint((0x0008000 & frame->eflags) >> 19, 2);
-    terminal_putchar(',');
-    terminal_writestring("VIP:");
-    terminal_writeint((0x0010000 & frame->eflags) >> 20, 2);
-    terminal_putchar(',');
-    terminal_writestring("ID:");
-    terminal_writeint((0x0020000 & frame->eflags) >> 21, 2);
-    terminal_putchar(')');
+    terminal_write_str(&state,(0x0001 & frame->eflags) != 0 ? "NC,": "CY,");
+    terminal_write_str(&state,(0x0004 & frame->eflags) != 0 ? "PE,": "PO,");
+    terminal_write_str(&state,(0x0010 & frame->eflags) != 0 ? "AC,": "NA,");
+    terminal_write_str(&state,(0x0040 & frame->eflags) != 0 ? "ZR,": "NZ,");
+    terminal_write_str(&state,(0x0080 & frame->eflags) != 0 ? "NG,": "PL,");
+    terminal_write_str(&state,"TF:");
+    terminal_write_int(&state,(0x0100 & frame->eflags) >> 8, 2);
+    terminal_write_char(&state,',');
+    terminal_write_str(&state,(0x0200 & frame->eflags) != 0 ? "EI,": "DI,");
+    terminal_write_str(&state,(0x0400 & frame->eflags) != 0 ? "DN,": "UP,");
+    terminal_write_str(&state,(0x0800 & frame->eflags) != 0 ? "OV,": "NV,");
+    terminal_write_str(&state,"IOPL:");
+    terminal_write_int(&state,(0x3000 & frame->eflags) >> 12, 10);
+    terminal_write_char(&state,',');
+    terminal_write_str(&state,"NT:");
+    terminal_write_int(&state,(0x4000 & frame->eflags) >> 14, 2);
+    terminal_write_char(&state,',');
+    terminal_write_str(&state,"RF:");
+    terminal_write_int(&state,(0x0001000 & frame->eflags) >> 16, 2);
+    terminal_write_char(&state,',');
+    terminal_write_str(&state,"VM:");
+    terminal_write_int(&state,(0x0002000 & frame->eflags) >> 17, 2);
+    terminal_write_char(&state,',');
+    terminal_write_str(&state,"AC:");
+    terminal_write_int(&state,(0x0004000 & frame->eflags) >> 18, 2);
+    terminal_write_char(&state,',');
+    terminal_write_str(&state,"VIF:");
+    terminal_write_int(&state,(0x0008000 & frame->eflags) >> 19, 2);
+    terminal_write_char(&state,',');
+    terminal_write_str(&state,"VIP:");
+    terminal_write_int(&state,(0x0010000 & frame->eflags) >> 20, 2);
+    terminal_write_char(&state,',');
+    terminal_write_str(&state,"ID:");
+    terminal_write_int(&state,(0x0020000 & frame->eflags) >> 21, 2);
+    terminal_write_char(&state,')');
 
     for(;;) {
         asm("hlt");
