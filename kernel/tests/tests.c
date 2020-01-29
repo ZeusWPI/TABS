@@ -1,5 +1,5 @@
-#ifndef TESTS_C
-#define TESTS_C
+#ifndef TESTS_TESTS_C
+#define TESTS_TESTS_C
 
 #define TESTS_ENABLED
 #ifdef TESTS_ENABLED
@@ -88,4 +88,4 @@ static char *all_tests() {
 
 #endif // TESTS_ENABLED
 
-#endif // TESTS_C
+#endif // TESTS_TESTS_C

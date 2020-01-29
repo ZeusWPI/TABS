@@ -1,5 +1,5 @@
-#ifndef LINKED_LIST_C
-#define LINKED_LIST_C
+#ifndef MEMORY_C
+#define MEMORY_C
 
 
 #include <stddef.h>
@@ -26,7 +26,7 @@ typedef struct page_tag {
 page_tag *start = (void *) MEMORY_START;;
 
 size_t calculate_realsize(size_t size) {
-    if (size % PAGE_ALIGNMENT == 0) return size + 0;
+    if (size % PAGE_ALIGNMENT == 0) return size;
     return size + PAGE_ALIGNMENT - (size % PAGE_ALIGNMENT);
 }
 
@@ -205,4 +205,4 @@ int command_mem_dump(char *string) {
 //    test_allocs();
 //}
 
-#endif // LINKED_LIST_C
+#endif // MEMORY_C

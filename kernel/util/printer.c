@@ -1,5 +1,5 @@
-#ifndef TABS_PRINTER_C
-#define TABS_PRINTER_C
+#ifndef UTIL_PRINTER_C
+#define UTIL_PRINTER_C
 
 #include <stdarg.h>
 
@@ -69,4 +69,4 @@ void print(const char *fmt, ...) {
     va_end(argp);
 }
 
-#endif //TABS_PRINTER_C
+#endif //UTIL_PRINTER_C
