@@ -58,8 +58,6 @@ void free(void *data) {
     data_tag->next->prev = data_tag->prev;
 }
 
-#define PRINT_MEM_WITH_COLUMNS = 1
-
 int amount_of_digits(int x) {
     if (x == 0) return 1;
     int n = 0;
