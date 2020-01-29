@@ -65,6 +65,8 @@ void kernel_main(void) {
 
     interrupt_init();
 
+    print_memory();
+
     for (;;) {
         shell_step();
     }

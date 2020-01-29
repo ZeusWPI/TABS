@@ -58,34 +58,72 @@ void free(void *data) {
     data_tag->next->prev = data_tag->prev;
 }
 
+#define PRINT_MEM_WITH_COLUMNS = 1
+
+int amount_of_digits(int x) {
+    if (x == 0) return 1;
+    int n = 0;
+    while (x != 0) {
+        n += 1;
+        x /= 10;
+    }
+    return n;
+}
+
 void print_memory() {
     print("____________________\n");
     print(" ===  MEM DUMP  === \n");
     page_tag *curr_page = start;
     int i = 0;
+    bool left = true;
     while (curr_page != NULL) {
-        print("%d: [%x (%d)] [%x (%d)]\n",
+        char padding[4] = {' ', ' ', ' ', ' '};
+        padding[4 - amount_of_digits(curr_page->size)] = '\0';
+        print("%d: [%x (%d)] [%x (%s%d)]",
               i,
               curr_page, sizeof(page_tag),
-              (curr_page + 1), curr_page->size);
+              (curr_page + 1), padding, curr_page->size);
 
+        if (left) {
+            print(" | ");
+        } else {
+            print("\n");
+        }
+        left = !left;
+
+        bool empty_print = false;
         void *empty_start = (void *) curr_page + sizeof(page_tag) + curr_page->size;
         if (empty_start + sizeof(page_tag) < (void *) curr_page->next) {
-            print("_: empty page (%d, %d)\n",
+            print("_: empty page (%d, %d)",
                   sizeof(page_tag),
                   (void *) curr_page->next -
                   (empty_start + sizeof(page_tag)));
+            empty_print = true;
         } else if (empty_start < (void *) curr_page->next) {
-            print("_: not enough room (%d)\n",
+            print("_: not enough room (%d)",
                   (void *) curr_page->next - empty_start);
+            empty_print = true;
         }
+        if (empty_print) {
+            if (left) {
+                print(" | ");
+            } else {
+                print("\n");
+            }
+            left = !left;
+        }
+
+
         curr_page = curr_page->next;
         i += 1;
+    }
+    if (!left) {
+        print("\n");
     }
     print("____________________\n");
 }
 
-int command_mem_dump(char*string){
+int command_mem_dump(char *string) {
     print_memory();
 }
 
