@@ -60,6 +60,15 @@ void kernel_main(void) {
     free(memory_str);
     free(management_str);
 
+    // Some dummy allocations to demonstrate the states of memory and to showcase the memory dump printout.
+    void* ptr = alloc(30);
+    alloc(30);
+    alloc(31);
+    free(ptr);
+
+    void* ptr2 = alloc(64);
+    alloc(61);
+    free(ptr2);
 
     print((are_interrupts_enabled()) ? "Interrupts!\n" : "No interrupts :(\n");
 
