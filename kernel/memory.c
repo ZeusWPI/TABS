@@ -22,15 +22,6 @@ typedef struct page_tag {
 
 page_tag *start = (void *) MEMORY_START;;
 
-
-page_tag *__searchPage(void *data) {
-    page_tag *curr_page = start;
-    while (curr_page + (sizeof(page_tag)) != data) {
-        curr_page = curr_page->next;
-    }
-    return curr_page;
-}
-
 void *alloc(size_t size) {
     page_tag *curr_page = start;
 
