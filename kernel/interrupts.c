@@ -32,12 +32,12 @@ void interrupt_new_handler(int intnum, void (*handler)(interrupt_frame*)) {
 
 void interrupt_init() {
     /* ICW1 - begin initialization */
-	outb(0x20, 0x11);
+    outb(0x20, 0x11);
     outb(0xA0, 0x11);
 
     /* ICW2 - remap offset address of IDT */
     outb(0x21, 0x20);
-    outb(0xA1, 0x82);
+    outb(0xA1, 0x28);
 
     /* ICW3 - setup cascading */
     outb(0x21, 0x00);
@@ -47,9 +47,9 @@ void interrupt_init() {
     outb(0x21, 0x01);
     outb(0xA1, 0x01);
 
-	/* mask interrupts */
-	outb(0x21 , 0xff);
-	outb(0xA1 , 0xff);
+    /* mask interrupts */
+    outb(0x21 , 0xff);
+    outb(0xA1 , 0xff);
 
     // Exceptions
     interrupt_new_handler(DIVIDE_BY_ZERO,           divide_by_zero_handler);
@@ -89,9 +89,10 @@ void interrupt_init() {
 
     uint16_t size = (sizeof(idt_entry) * 256);
 
-	lidt(IDT, size);
+    lidt(IDT, size);
 
     keyboard_init();
+
 }
 
 #endif //INTERRUPTS_C
