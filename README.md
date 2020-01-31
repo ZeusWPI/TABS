@@ -18,6 +18,8 @@ If you run `make bin`, it will generate `target/boot.bin`, this is a binary file
 In case there are errors in the bootloader you can use `make compile_kernel` to only compile the kernel.
 
 To run TABS in the qemu simulator run `make run`.
+To test the operating system in QEMU, first set up a tap interface with the `create_tap.sh` script,
+then run `make run` or `make run_kernelonly`.
 
 ## Bootloader
 
@@ -45,5 +47,8 @@ The kernel is based on [the bare bones kernel from the OSDev wiki](https://wiki.
 - [ ] Running executables from filesystem
 - [x] Better memory management
 - [ ] Better shell
+- [X] A driver for E1000-type network cards
+  - [X] sending packets
+  - [X] receiving packets
 
 As a test, I've implemented day 1 of [advent of code](https://adventofcode.com/) on the [AoC branch](https://github.com/Robbe7730/RoBoot/tree/AoC).

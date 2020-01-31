@@ -2,7 +2,7 @@
 #define RINGBUFFER_C
 
 #include <stdbool.h>
-#include "../alloc.c"
+#include "../memory.c"
 
 /*
  * Data layout:       ↓head
