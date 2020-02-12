@@ -43,7 +43,7 @@ The kernel is based on [the bare bones kernel from the OSDev wiki](https://wiki.
   - [ ] Write files in directory
 - [ ] Tests
 - [ ] Running executables from filesystem
-- [ ] Better memory management
+- [x] Better memory management
 - [ ] Better shell
 
 As a test, I've implemented day 1 of [advent of code](https://adventofcode.com/) on the [AoC branch](https://github.com/Robbe7730/RoBoot/tree/AoC).

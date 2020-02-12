@@ -290,7 +290,7 @@ repnz movsd
 or ax, ax
 jnz .elf_ph_loop
 
-.start_kernel
+.start_kernel:
 
 cmp edi, KERNEL_START
 je .invalid_elf
