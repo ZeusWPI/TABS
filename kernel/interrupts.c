@@ -87,7 +87,7 @@ void interrupt_init() {
 
     interrupt_new_handler(0x21, keyboard_handler);
 
-    uint16_t size = (sizeof(idt_entry) * 256);
+    uint16_t size = (sizeof(idt_entry) * 256) - 1;
 
     lidt(IDT, size);
 
