@@ -1,8 +1,8 @@
 run: bin
-	qemu-system-i386 -drive format=raw,file=target/boot.bin -monitor stdio
+	qemu-system-i386 -vga std -nodefaults -drive format=raw,file=target/boot.bin -monitor stdio -device e1000,netdev=u1,mac=aa:bb:cc:dd:ee:ff -object filter-dump,id=f1,netdev=u1,file=/tmp/dump.pcap -netdev tap,id=u1,ifname=tap0,script=no,downscript=no
 
 run_kernelonly: compile_kernel
-	qemu-system-i386 -kernel target/kernel/kernel.bin -monitor stdio
+	qemu-system-i386 -kernel target/kernel/kernel.bin -monitor stdio -vga std -nodefaults -device e1000,netdev=u1,mac=aa:bb:cc:dd:ee:ff -object filter-dump,id=f1,netdev=u1,file=/tmp/dump.dat -netdev tap,id=u1,ifname=tap0,script=no,downscript=no
 
 debug_kernel: compile_kernel
 	qemu-system-i386 -s -S -kernel target/kernel/kernel.bin

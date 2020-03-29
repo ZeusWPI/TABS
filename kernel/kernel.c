@@ -17,6 +17,7 @@
 #include "interrupts.c"
 #include "shell.c"
 #include "util/printer.c"
+#include "network.c"
 
 static inline bool are_interrupts_enabled() {
     unsigned long flags;
@@ -74,9 +75,10 @@ void kernel_main(void) {
 
     interrupt_init();
 
+    network_init();
     print_memory();
 
-    for (;;) {
-        shell_step();
-    }
+	  for(;;) {
+		  shell_step();
+	  }
 }
